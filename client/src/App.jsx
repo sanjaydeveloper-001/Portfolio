@@ -230,7 +230,7 @@ const Overview = () => {
 
         {/* Education */}
         <SectionCard title="Education" icon={GraduationCap} linkTo="/education" count={education.length} empty={education.length === 0}>
-          {education.slice(0, 3).map((ed, i) => (
+          {education.length > 3 ? education.slice(0, 3).map((ed, i) => (
             <div key={ed._id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', paddingBottom: i < Math.min(education.length, 3) - 1 ? '12px' : '0', marginBottom: i < Math.min(education.length, 3) - 1 ? '12px' : '0', borderBottom: i < Math.min(education.length, 3) - 1 ? '1px solid #F4F4F5' : 'none' }}>
               <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '13px', fontWeight: '700', color: '#3B82F6', fontFamily: 'DM Sans, sans-serif' }}>{i + 1}</div>
               <div style={{ minWidth: 0 }}>
@@ -242,7 +242,7 @@ const Overview = () => {
                 </div>
               </div>
             </div>
-          ))}
+          )) : '' }
         </SectionCard>
 
         {/* Experience */}

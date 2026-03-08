@@ -30,8 +30,14 @@ mongoose.connection.on('disconnected', () => {
 
 const app = express();
 
-// Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://port-sanjayhandler.vercel.app"
+  ]
+}))
+
+
 app.use(express.json());
 
 // Setup __dirname for ES modules
