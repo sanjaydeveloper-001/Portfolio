@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Menu } from 'lucide-react';
-import Sidebar from './Sidebar';
+import Sidebar from './SideBar';
 
 const routeTitles = {
   '/':               'Dashboard',
