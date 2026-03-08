@@ -33,7 +33,7 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://port-sanjayhandler.vercel.app"
+    "https://sanjay-porthandler.vercel.app"
   ]
 }))
 
