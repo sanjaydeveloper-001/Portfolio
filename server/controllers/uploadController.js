@@ -1,13 +1,17 @@
 export const uploadImage = (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
+      return res.status(400).json({ message: "No file uploaded" });
     }
-    // Construct full URL
-    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+
+    const base64 = req.file.buffer.toString("base64");
+
+    const imageUrl = `data:${req.file.mimetype};base64,${base64}`;
+
     res.json({ url: imageUrl });
+
   } catch (err) {
-    console.error('Upload error:', err);
+    console.error("Upload error:", err);
     res.status(500).json({ message: err.message });
   }
 };
