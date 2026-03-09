@@ -1,4 +1,4 @@
-import { Icon } from './UI';
+import { Icon } from './Ui';
 
 const DEMO_CERTS = [
   { name: 'AWS Solutions Architect', issuer: 'Amazon Web Services' },

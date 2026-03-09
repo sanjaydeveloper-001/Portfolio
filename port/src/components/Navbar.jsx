@@ -1,6 +1,6 @@
 // components/Navbar.jsx
 import { useState } from 'react';
-import { Icon } from './UI';
+import { Icon } from './Ui';
 
 export const NAV = [
   { id: 'home',           label: 'Home'           },

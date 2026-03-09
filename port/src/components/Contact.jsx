@@ -3,7 +3,7 @@
  * Contact section + Footer
  */
 
-import { Icon } from './UI';
+import { Icon } from './Ui';
 import { useContactForm } from '../hooks';
 
 export function Contact({ profile }) {

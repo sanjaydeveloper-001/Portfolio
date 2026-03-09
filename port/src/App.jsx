@@ -1,7 +1,7 @@
 // App.jsx
 import { useState, useEffect } from 'react';
 
-import { Cursor, ScrollProgress, Loader } from './components/UI';
+import { Cursor, ScrollProgress, Loader } from './components/Ui';
 import { Navbar, NAV_IDS }               from './components/Navbar';
 import Hero                               from './components/Hero';
 import About                              from './components/About';

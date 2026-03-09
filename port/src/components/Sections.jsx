@@ -3,7 +3,7 @@
  * Services · Counters (kept here for now)
  */
 
-import { Icon } from './UI';
+import { Icon } from './Ui';
 
 const SERVICES = [
   { icon: <Icon.Monitor />, name: 'Website Design', ghost: 'WEB', desc: 'Clean, responsive websites built for performance and beautiful user experience.' },
