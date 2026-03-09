@@ -32,8 +32,8 @@ const app = express();
 
 app.use(cors({
   origin: [
-    "http://localhost:5173",
-    "https://sanjay-porthandler.vercel.app"
+    `${process.env.CLIENT_URL1}`,
+    `${process.env.CLIENT_URL2}`
   ]
 }))
 
