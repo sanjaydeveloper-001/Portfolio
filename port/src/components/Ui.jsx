@@ -1,56 +1,178 @@
 /**
  * components/UI.jsx
- * Shared primitives: Cursor, ScrollProgress, Loader, Icons
+ * Cursor: OS arrow shape in --red theme color
+ * + Double-click bubble burst effect
  */
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useScrollProgress } from '../hooks';
 
 /* ═══════════════════════════
-   CUSTOM CURSOR
+   BUBBLE BURST ON DOUBLE CLICK
 ═══════════════════════════ */
-export const Cursor = () => {
-  const dot  = useRef(null);
-  const ring = useRef(null);
-  const pos  = useRef({ x: 0, y: 0 });
-  const rPos = useRef({ x: 0, y: 0 });
-  const raf  = useRef(null);
+const BubbleBurst = () => {
+  const [bubbles, setBubbles] = useState([]);
 
   useEffect(() => {
-    const move = (e) => {
-      pos.current = { x: e.clientX, y: e.clientY };
-      if (dot.current) {
-        dot.current.style.left = e.clientX + 'px';
-        dot.current.style.top  = e.clientY + 'px';
-      }
+    const onDblClick = (e) => {
+      const id = Date.now();
+      const count = 8;
+      const newBubbles = Array.from({ length: count }, (_, i) => ({
+        id: `${id}-${i}`,
+        x: e.clientX,
+        y: e.clientY,
+        angle: (360 / count) * i,
+        size: 6 + Math.random() * 10,
+        distance: 40 + Math.random() * 40,
+      }));
+
+      setBubbles(prev => [...prev, ...newBubbles]);
+
+      // Remove after animation
+      setTimeout(() => {
+        setBubbles(prev => prev.filter(b => !newBubbles.find(n => n.id === b.id)));
+      }, 700);
     };
-    const hover = (e) => {
-      const t = e.target.closest('a,button,[data-hover]');
-      document.body.classList.toggle('cur-hover', !!t);
-    };
-    const loop = () => {
-      if (ring.current) {
-        rPos.current.x += (pos.current.x - rPos.current.x) * 0.1;
-        rPos.current.y += (pos.current.y - rPos.current.y) * 0.1;
-        ring.current.style.left = rPos.current.x + 'px';
-        ring.current.style.top  = rPos.current.y + 'px';
-      }
-      raf.current = requestAnimationFrame(loop);
-    };
-    window.addEventListener('mousemove', move);
-    document.addEventListener('mouseover', hover);
-    raf.current = requestAnimationFrame(loop);
-    return () => {
-      window.removeEventListener('mousemove', move);
-      document.removeEventListener('mouseover', hover);
-      cancelAnimationFrame(raf.current);
-    };
+
+    window.addEventListener('dblclick', onDblClick);
+    return () => window.removeEventListener('dblclick', onDblClick);
   }, []);
 
   return (
     <>
-      <div id="cur-dot"  ref={dot}  />
-      <div id="cur-ring" ref={ring} />
+      <style>{`
+        .bubble {
+          position: fixed;
+          border-radius: 50%;
+          pointer-events: none;
+          z-index: 99998;
+          border: 2px solid var(--red, #e63946);
+          background: transparent;
+          transform: translate(-50%, -50%);
+          animation: bubble-burst 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        .bubble-ring {
+          position: fixed;
+          border-radius: 50%;
+          pointer-events: none;
+          z-index: 99997;
+          border: 1.5px solid var(--red, #e63946);
+          background: transparent;
+          transform: translate(-50%, -50%);
+          animation: ring-expand 0.65s ease-out forwards;
+        }
+        @keyframes ring-expand {
+          0%   { width: 0px;  height: 0px;  opacity: 0.8; }
+          100% { width: 80px; height: 80px; opacity: 0; }
+        }
+      `}</style>
+
+      {/* Central expanding ring */}
+      {bubbles
+        .filter((_, i) => i % 8 === 0)
+        .map(b => (
+          <div
+            key={`ring-${b.id}`}
+            className="bubble-ring"
+            style={{ left: b.x, top: b.y }}
+          />
+        ))
+      }
+
+      {/* Scattered bubbles */}
+      {bubbles.map(b => {
+        const rad = (b.angle * Math.PI) / 180;
+        const tx  = Math.cos(rad) * b.distance;
+        const ty  = Math.sin(rad) * b.distance;
+
+        return (
+          <div
+            key={b.id}
+            className="bubble"
+            style={{
+              left: b.x,
+              top: b.y,
+              width: b.size,
+              height: b.size,
+              // Inline keyframe via CSS custom properties trick
+              '--tx': `${tx}px`,
+              '--ty': `${ty}px`,
+              animationName: 'none', // override, use inline style animation
+              animation: `bubble-fly-${b.id} 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`,
+            }}
+          />
+        );
+      })}
+
+      {/* Inject per-bubble keyframes */}
+      {bubbles.map(b => {
+        const rad = (b.angle * Math.PI) / 180;
+        const tx  = Math.cos(rad) * b.distance;
+        const ty  = Math.sin(rad) * b.distance;
+        return (
+          <style key={`style-${b.id}`}>{`
+            @keyframes bubble-fly-${b.id} {
+              0%   { transform: translate(-50%, -50%) translate(0, 0);         opacity: 1; width: ${b.size}px; height: ${b.size}px; }
+              60%  { opacity: 0.8; }
+              100% { transform: translate(-50%, -50%) translate(${tx}px, ${ty}px); opacity: 0; width: ${b.size * 0.4}px; height: ${b.size * 0.4}px; }
+            }
+          `}</style>
+        );
+      })}
+    </>
+  );
+};
+
+/* ═══════════════════════════
+   CURSOR
+═══════════════════════════ */
+export const Cursor = () => {
+  const svgRef = useRef(null);
+
+  useEffect(() => {
+    const onMove = (e) => {
+      if (svgRef.current) {
+        svgRef.current.style.transform =
+          `translate(${e.clientX}px, ${e.clientY}px)`;
+      }
+    };
+
+    window.addEventListener('mousemove', onMove);
+    return () => window.removeEventListener('mousemove', onMove);
+  }, []);
+
+  return (
+    <>
+      <style>{`
+        *, *::before, *::after { cursor: none !important; }
+        .cur-arrow {
+          position: fixed;
+          top: 0; left: 0;
+          pointer-events: none;
+          z-index: 99999;
+          will-change: transform;
+        }
+      `}</style>
+
+      <svg
+        ref={svgRef}
+        className="cur-arrow"
+        width="24" height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path
+          d="M3 2L3 18L7.5 13.5L10.5 21L13 20L10 13H16L3 2Z"
+          fill="var(--red, #e63946)"
+          stroke="#0a0a0a"
+          strokeWidth="1"
+          strokeLinejoin="round"
+        />
+      </svg>
+
+      <BubbleBurst />
     </>
   );
 };

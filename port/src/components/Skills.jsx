@@ -1,4 +1,5 @@
 // components/Skills.jsx
+// ── ALL styles live in globalStyles.js ──
 import { useEffect, useRef, useState } from "react";
 
 const ICON_MAP = {
@@ -31,124 +32,132 @@ function levelColor(pct) {
   return "#EF4444";
 }
 
-function Ring({ pct, name, size = 96 }) {
+/* ─────────────────────────────────────────
+   Ring component
+   Uses a conic-gradient approach as the
+   primary ring — guaranteed to render
+   without SVG clipping issues.
+   A radial-gradient cutout creates the
+   donut hole with the icon inside.
+───────────────────────────────────────── */
+function Ring({ pct, name, size = 120 }) {
   const [animated, setAnimated] = useState(0);
-  const ref = useRef(null);
+  const ref   = useRef(null);
   const color = levelColor(pct);
 
-  const stroke    = 5;
-  const r         = (size - stroke * 2) / 2;
-  const circ      = 2 * Math.PI * r;
-  const dashOffset = circ - (animated / 100) * circ;
-
   useEffect(() => {
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          let start = null;
-          const duration = 900;
-          const tick = (ts) => {
-            if (!start) start = ts;
-            const progress = Math.min((ts - start) / duration, 1);
-            setAnimated(pct * (1 - Math.pow(1 - progress, 3)));
-            if (progress < 1) requestAnimationFrame(tick);
-          };
-          requestAnimationFrame(tick);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.3 }
-    );
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        let start = null;
+        const tick = ts => {
+          if (!start) start = ts;
+          const p = Math.min((ts - start) / 1000, 1);
+          setAnimated(pct * (1 - Math.pow(1 - p, 3)));
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+        io.disconnect();
+      }
+    }, { threshold: 0.2 });
     if (ref.current) io.observe(ref.current);
     return () => io.disconnect();
   }, [pct]);
 
-  const icon = ICON_MAP[name];
+  const deg      = (animated / 100) * 360;
+  const iconSize = Math.round(size * 0.36);
+  // Inner circle is 72% of outer — creates the donut ring thickness
+  const innerPct = 72;
+  const trackW   = `${(100 - innerPct) / 2}%`;
 
   return (
     <div
       ref={ref}
       style={{
-        display: "flex",
+        display:       "flex",
         flexDirection: "column",
-        alignItems: "center",
-        gap: "10px",
+        alignItems:    "center",
+        gap:           "12px",
       }}
     >
-      <div style={{ position: "relative", width: size, height: size }}>
-        <svg
-          width={size}
-          height={size}
-          style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}
-        >
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={r}
-            fill="none"
-            stroke="rgba(var(--white-rgb), 0.06)"
-            strokeWidth={stroke}
-          />
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={r}
-            fill="none"
-            stroke={color}
-            strokeWidth={stroke}
-            strokeLinecap="round"
-            strokeDasharray={circ}
-            strokeDashoffset={dashOffset}
-            style={{ transition: "stroke-dashoffset .05s linear" }}
-          />
-        </svg>
-
+      {/* Outer ring container */}
+      <div
+        style={{
+          position:     "relative",
+          width:        size,
+          height:       size,
+          borderRadius: "50%",
+          // Grey track — full circle background
+          background:   `conic-gradient(
+            ${color} 0deg ${deg}deg,
+            rgba(255,255,255,0.08) ${deg}deg 360deg
+          )`,
+          // Glow on the colored arc
+          boxShadow:    `0 0 0 0px transparent, inset 0 0 0 0px transparent`,
+          filter:       `drop-shadow(0 0 8px ${color}55)`,
+          flexShrink:   0,
+        }}
+      >
+        {/* Inner donut hole — dark circle with icon */}
         <div
           style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
+            position:       "absolute",
+            top:            "50%",
+            left:           "50%",
+            transform:      "translate(-50%, -50%)",
+            width:          `${innerPct}%`,
+            height:         `${innerPct}%`,
+            borderRadius:   "50%",
+            background:     "#111111",
+            display:        "flex",
+            alignItems:     "center",
             justifyContent: "center",
+            boxShadow:      "inset 0 2px 12px rgba(0,0,0,0.8)",
           }}
         >
-          {icon ? (
-            <img src={icon} alt={name} width={34} height={34} style={{ objectFit: "contain" }} />
-          ) : (
-            <span
-              style={{
-                fontFamily: "var(--font-mono, monospace)",
-                fontSize: "11px",
-                color: "var(--white)",
-                letterSpacing: "0.05em",
-              }}
-            >
-              {name.slice(0, 2).toUpperCase()}
-            </span>
-          )}
+          {ICON_MAP[name]
+            ? (
+              <img
+                src={ICON_MAP[name]}
+                alt={name}
+                width={iconSize}
+                height={iconSize}
+                style={{ objectFit: "contain", display: "block" }}
+              />
+            )
+            : (
+              <span style={{
+                fontFamily:    "var(--font-mono)",
+                fontSize:      "13px",
+                fontWeight:    700,
+                color:         color,
+                letterSpacing: "0.04em",
+              }}>
+                {name.slice(0, 2).toUpperCase()}
+              </span>
+            )
+          }
         </div>
       </div>
 
-      <div style={{ textAlign: "center" }}>
-        <div
-          style={{
-            fontSize: "11px",
-            fontFamily: "var(--font-mono, monospace)",
-            color: "rgba(var(--white-rgb), 0.55)",
-            letterSpacing: "0.08em",
-            marginBottom: "2px",
-          }}
-        >
+      {/* Name + % */}
+      <div style={{ textAlign: "center", lineHeight: 1.4 }}>
+        <div style={{
+          fontSize:      "10px",
+          fontFamily:    "var(--font-mono)",
+          color:         "rgba(255,255,255,0.5)",
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          marginBottom:  "4px",
+        }}>
           {name}
         </div>
-        <div
-          style={{
-            fontSize: "13px",
-            fontWeight: 700,
-            color,
-            fontFamily: "var(--font-mono, monospace)",
-          }}
-        >
+        <div style={{
+          fontSize:      "15px",
+          fontWeight:    700,
+          color,
+          fontFamily:    "var(--font-mono)",
+          letterSpacing: "0.04em",
+        }}>
           {Math.round(animated)}%
         </div>
       </div>
@@ -157,39 +166,33 @@ function Ring({ pct, name, size = 96 }) {
 }
 
 function ToolChip({ name }) {
-  const [hovered, setHovered] = useState(false);
+  const [hov, setHov] = useState(false);
   const icon = ICON_MAP[name];
-
   return (
     <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
       style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "8px",
-        border: `1px solid ${hovered ? "rgba(0,212,255,0.4)" : "var(--border)"}`,
-        borderRadius: "8px",
-        padding: "8px 14px",
-        background: hovered ? "rgba(0,212,255,0.06)" : "rgba(var(--white-rgb), 0.03)",
-        cursor: "default",
-        transition: "border-color .2s, background .2s, transform .2s",
-        transform: hovered ? "translateY(-2px)" : "none",
+        display:       "inline-flex",
+        alignItems:    "center",
+        gap:           "8px",
+        border:        `1px solid ${hov ? "rgba(0,212,255,0.4)" : "var(--border)"}`,
+        borderRadius:  "8px",
+        padding:       "8px 14px",
+        background:    hov ? "rgba(0,212,255,0.06)" : "rgba(var(--white-rgb),0.03)",
+        transition:    "border-color .2s, background .2s, transform .2s",
+        transform:     hov ? "translateY(-2px)" : "none",
       }}
     >
-      {icon && (
-        <img src={icon} alt={name} width={16} height={16} style={{ objectFit: "contain" }} />
-      )}
-      <span
-        style={{
-          fontSize: "12px",
-          fontFamily: "var(--font-mono, monospace)",
-          color: hovered ? "rgba(var(--white-rgb), 0.85)" : "rgba(var(--white-rgb), 0.5)",
-          letterSpacing: "0.06em",
-          transition: "color .2s",
-          whiteSpace: "nowrap",
-        }}
-      >
+      {icon && <img src={icon} alt={name} width={16} height={16} style={{ objectFit: "contain" }} />}
+      <span style={{
+        fontSize:      "12px",
+        fontFamily:    "var(--font-mono)",
+        letterSpacing: "0.06em",
+        whiteSpace:    "nowrap",
+        transition:    "color .2s",
+        color:         hov ? "rgba(var(--white-rgb),0.85)" : "rgba(var(--white-rgb),0.5)",
+      }}>
         {name}
       </span>
     </div>
@@ -198,37 +201,24 @@ function ToolChip({ name }) {
 
 function SoftPill({ name, index }) {
   const colors = ["#2ECC71", "#00D4FF", "#F59E0B", "#EC4899", "#8B5CF6"];
-  const c = colors[index % colors.length];
-
+  const c      = colors[index % colors.length];
   return (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "8px",
-        border: `1px solid ${c}30`,
-        borderRadius: "100px",
-        padding: "8px 18px",
-        background: `${c}0a`,
-      }}
-    >
-      <span
-        style={{
-          width: "6px",
-          height: "6px",
-          borderRadius: "50%",
-          background: c,
-          flexShrink: 0,
-        }}
-      />
-      <span
-        style={{
-          fontSize: "13px",
-          color: "rgba(var(--white-rgb), 0.65)",
-          fontFamily: "var(--font-mono, monospace)",
-          letterSpacing: "0.05em",
-        }}
-      >
+    <div style={{
+      display:      "inline-flex",
+      alignItems:   "center",
+      gap:          "8px",
+      border:       `1px solid ${c}30`,
+      borderRadius: "100px",
+      padding:      "8px 18px",
+      background:   `${c}0a`,
+    }}>
+      <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: c, flexShrink: 0 }} />
+      <span style={{
+        fontSize:      "13px",
+        color:         "rgba(var(--white-rgb),0.65)",
+        fontFamily:    "var(--font-mono)",
+        letterSpacing: "0.05em",
+      }}>
         {name}
       </span>
     </div>
@@ -237,66 +227,35 @@ function SoftPill({ name, index }) {
 
 function LangBar({ name, level, index }) {
   const [width, setWidth] = useState(0);
-  const ref = useRef(null);
+  const ref   = useRef(null);
   const color = levelColor(level);
-
   useEffect(() => {
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => setWidth(level), index * 60);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.2 }
-    );
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        setTimeout(() => setWidth(level), index * 60);
+        io.disconnect();
+      }
+    }, { threshold: 0.2 });
     if (ref.current) io.observe(ref.current);
     return () => io.disconnect();
   }, [level, index]);
-
   return (
     <div ref={ref} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
       <div style={{ width: "80px", textAlign: "right", flexShrink: 0 }}>
-        <span
-          style={{
-            fontSize: "11px",
-            fontFamily: "var(--font-mono, monospace)",
-            color: "rgba(var(--white-rgb), 0.45)",
-            letterSpacing: "0.06em",
-          }}
-        >
+        <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "rgba(var(--white-rgb),0.45)", letterSpacing: "0.06em" }}>
           {name}
         </span>
       </div>
-      <div
-        style={{
-          flex: 1,
-          height: "4px",
-          background: "rgba(var(--white-rgb), 0.06)",
+      <div style={{ flex: 1, height: "4px", background: "rgba(var(--white-rgb),0.06)", borderRadius: "2px", overflow: "hidden" }}>
+        <div style={{
+          height:       "100%",
+          width:        `${width}%`,
+          background:   `linear-gradient(90deg,${color}99,${color})`,
           borderRadius: "2px",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            height: "100%",
-            width: `${width}%`,
-            background: `linear-gradient(90deg, ${color}99, ${color})`,
-            borderRadius: "2px",
-            transition: "width .8s cubic-bezier(.16,1,.3,1)",
-          }}
-        />
+          transition:   "width .8s cubic-bezier(.16,1,.3,1)",
+        }} />
       </div>
-      <div
-        style={{
-          width: "34px",
-          textAlign: "right",
-          fontSize: "11px",
-          fontFamily: "var(--font-mono, monospace)",
-          color,
-          flexShrink: 0,
-        }}
-      >
+      <div style={{ width: "34px", textAlign: "right", fontSize: "11px", fontFamily: "var(--font-mono)", color, flexShrink: 0 }}>
         {level}%
       </div>
     </div>
@@ -305,290 +264,167 @@ function LangBar({ name, level, index }) {
 
 export default function Skills({ data = null }) {
   const skills = data || {
-    frameworks_tools: [
-      "React","Docker","MongoDB","FireBase","MERN",
-      "Tailwindcss","Bootstrap","Git","Github","VS Code","ThingsBoard",
-    ],
-    softSkills: ["LeaderShip","Problem Solving","Critical Thinking"],
+    frameworks_tools: ["React", "Docker", "MongoDB", "FireBase", "MERN", "Tailwindcss", "Bootstrap", "Git", "Github", "VS Code", "ThingsBoard"],
+    softSkills:       ["LeaderShip", "Problem Solving", "Critical Thinking"],
     languages: [
-      { name: "Java",         level: 75 },
-      { name: "C",            level: 50 },
-      { name: "Python",       level: 35 },
-      { name: "HTML",         level: 90 },
-      { name: "CSS",          level: 85 },
-      { name: "Java Script",  level: 75 },
-      { name: "React",        level: 80 },
-      { name: "Angular",      level: 25 },
-      { name: "Node Js",      level: 65 },
+      { name: "Java",        level: 75 },
+      { name: "C",           level: 50 },
+      { name: "Python",      level: 35 },
+      { name: "HTML",        level: 90 },
+      { name: "CSS",         level: 85 },
+      { name: "Java Script", level: 75 },
+      { name: "React",       level: 80 },
+      { name: "Angular",     level: 25 },
+      { name: "Node Js",     level: 65 },
     ],
   };
 
-  const ringLangs = skills.languages.slice(0, 6);
-  const barLangs  = skills.languages.slice(6);
+  const ringLangs = skills.languages.slice(0, 9);
+  const barLangs  = skills.languages.slice(9);
 
   return (
-    <>
-      <style>{`
-        @keyframes fadeUp {
-          from { opacity:0; transform:translateY(20px); }
-          to   { opacity:1; transform:translateY(0); }
-        }
-        .skills-fade { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) both; }
+    <section id="skills">
 
-        #skills-section {
-          padding: 100px 80px;
-        }
-        @media (max-width: 960px) {
-          #skills-section { padding: 72px 40px; }
-          .skills-main-grid { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 600px) {
-          #skills-section { padding: 56px 20px; }
-          .ring-grid { grid-template-columns: repeat(2, 1fr) !important; }
-        }
-      `}</style>
-
-      <section
-        id="skills-section"
-        style={{
-          background: "var(--bg)",
-          borderBottom: "1px solid var(--border)",
-        }}
-      >
-        <div className="skills-fade" style={{ marginBottom: "56px" }}>
-          <div
-            style={{
-              fontSize: "10px",
-              letterSpacing: "0.24em",
-              textTransform: "uppercase",
-              color: "rgba(var(--white-rgb), 0.35)",
-              fontFamily: "var(--font-mono, monospace)",
-              marginBottom: "12px",
-            }}
-          >
-            Expertise
-          </div>
-          <h2
-            style={{
-              fontFamily: "var(--font-display, serif)",
-              fontSize: "clamp(32px, 4vw, 52px)",
-              letterSpacing: "0.03em",
-              margin: 0,
-              color: "var(--white)",
-            }}
-          >
-            Technologies
-            <span style={{ color: "var(--accent)" }}>.</span>
-          </h2>
+      {/* Header */}
+      <div className="skills-fade" style={{ marginBottom: "56px" }}>
+        <div style={{
+          fontSize: "10px", letterSpacing: "0.24em", textTransform: "uppercase",
+          color: "rgba(var(--white-rgb),0.35)", fontFamily: "var(--font-mono)", marginBottom: "12px",
+        }}>
+          Expertise
         </div>
+        <h2 style={{
+          fontFamily: "var(--font-display)", fontSize: "clamp(32px,4vw,52px)",
+          letterSpacing: "0.03em", margin: 0, color: "var(--white)",
+        }}>
+          Technologies<span style={{ color: "var(--accent)" }}>.</span>
+        </h2>
+      </div>
 
-        <div
-          className="skills-main-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "24px",
-            alignItems: "start",
-          }}
-        >
+      {/* Two-column grid */}
+      <div className="skills-main-grid">
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        {/* Left column */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
 
-            <div
-              className="skills-fade"
-              style={{
-                background: "var(--bg2)",
-                border: "1px solid var(--border)",
-                borderRadius: "12px",
-                padding: "32px",
-                animationDelay: "0.05s",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "10px",
-                  letterSpacing: "0.22em",
-                  textTransform: "uppercase",
-                  color: "#00D4FF",
-                  fontFamily: "var(--font-mono, monospace)",
-                  marginBottom: "20px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
-              >
-                <span style={{ display: "inline-block", width: "16px", height: "1px", background: "#00D4FF" }} />
-                Frameworks &amp; Tools
-              </div>
-
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                {skills.frameworks_tools.map((t, i) => (
-                  <div key={i} className="skills-fade" style={{ animationDelay: `${0.08 + i * 0.04}s` }}>
-                    <ToolChip name={t} />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div
-              className="skills-fade"
-              style={{
-                background: "var(--bg2)",
-                border: "1px solid var(--border)",
-                borderRadius: "12px",
-                padding: "32px",
-                animationDelay: "0.15s",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "10px",
-                  letterSpacing: "0.22em",
-                  textTransform: "uppercase",
-                  color: "#2ECC71",
-                  fontFamily: "var(--font-mono, monospace)",
-                  marginBottom: "20px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
-              >
-                <span style={{ display: "inline-block", width: "16px", height: "1px", background: "#2ECC71" }} />
-                Soft Skills
-              </div>
-
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                {skills.softSkills.map((s, i) => (
-                  <SoftPill key={i} name={s} index={i} />
-                ))}
-              </div>
-            </div>
-
-            {barLangs.length > 0 && (
-              <div
-                className="skills-fade"
-                style={{
-                  background: "var(--bg2)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "12px",
-                  padding: "32px",
-                  animationDelay: "0.22s",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "10px",
-                    letterSpacing: "0.22em",
-                    textTransform: "uppercase",
-                    color: "#F59E0B",
-                    fontFamily: "var(--font-mono, monospace)",
-                    marginBottom: "20px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  <span style={{ display: "inline-block", width: "16px", height: "1px", background: "#F59E0B" }} />
-                  More Languages
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                  {barLangs.map((l, i) => (
-                    <LangBar key={l._id || i} name={l.name} level={l.level} index={i} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div
-            className="skills-fade"
-            style={{
-              background: "var(--bg2)",
-              border: "1px solid var(--border)",
-              borderRadius: "12px",
-              padding: "36px 32px",
-              animationDelay: "0.1s",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "10px",
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                color: "#00D4FF",
-                fontFamily: "var(--font-mono, monospace)",
-                marginBottom: "28px",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
+          {/* Frameworks & Tools */}
+          <div className="skills-fade" style={{
+            background: "var(--bg2)", border: "1px solid var(--border)",
+            borderRadius: "12px", padding: "32px", animationDelay: "0.05s",
+          }}>
+            <div style={{
+              fontSize: "10px", letterSpacing: "0.22em", textTransform: "uppercase",
+              color: "#00D4FF", fontFamily: "var(--font-mono)", marginBottom: "20px",
+              display: "flex", alignItems: "center", gap: "8px",
+            }}>
               <span style={{ display: "inline-block", width: "16px", height: "1px", background: "#00D4FF" }} />
-              Programming Languages
+              Frameworks &amp; Tools
             </div>
-
-            <div
-              className="ring-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "28px 16px",
-                justifyItems: "center",
-              }}
-            >
-              {ringLangs.map((l, i) => (
-                <div key={l._id || i} className="skills-fade" style={{ animationDelay: `${0.12 + i * 0.07}s` }}>
-                  <Ring pct={l.level} name={l.name} size={96} />
-                </div>
-              ))}
-            </div>
-
-            <div
-              style={{
-                marginTop: "36px",
-                paddingTop: "24px",
-                borderTop: "1px solid var(--border)",
-                display: "flex",
-                gap: "16px",
-                flexWrap: "wrap",
-                justifyContent: "center",
-              }}
-            >
-              {[
-                { label: "Expert",       color: "#00D4FF", min: "80%+" },
-                { label: "Proficient",   color: "#2ECC71", min: "60–79%" },
-                { label: "Intermediate", color: "#F59E0B", min: "40–59%" },
-                { label: "Beginner",     color: "#EF4444", min: "<40%" },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  style={{ display: "flex", alignItems: "center", gap: "6px" }}
-                >
-                  <span
-                    style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      background: item.color,
-                      flexShrink: 0,
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontSize: "10px",
-                      fontFamily: "var(--font-mono, monospace)",
-                      color: "rgba(var(--white-rgb), 0.35)",
-                      letterSpacing: "0.06em",
-                    }}
-                  >
-                    {item.label} <span style={{ color: item.color, opacity: 0.7 }}>{item.min}</span>
-                  </span>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {skills.frameworks_tools.map((t, i) => (
+                <div key={i} className="skills-fade" style={{ animationDelay: `${0.08 + i * 0.04}s` }}>
+                  <ToolChip name={t} />
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Soft Skills */}
+          <div className="skills-fade" style={{
+            background: "var(--bg2)", border: "1px solid var(--border)",
+            borderRadius: "12px", padding: "32px", animationDelay: "0.15s",
+          }}>
+            <div style={{
+              fontSize: "10px", letterSpacing: "0.22em", textTransform: "uppercase",
+              color: "#2ECC71", fontFamily: "var(--font-mono)", marginBottom: "20px",
+              display: "flex", alignItems: "center", gap: "8px",
+            }}>
+              <span style={{ display: "inline-block", width: "16px", height: "1px", background: "#2ECC71" }} />
+              Soft Skills
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+              {skills.softSkills.map((s, i) => <SoftPill key={i} name={s} index={i} />)}
+            </div>
+          </div>
+
+          {/* Extra languages as bars */}
+          {barLangs.length > 0 && (
+            <div className="skills-fade" style={{
+              background: "var(--bg2)", border: "1px solid var(--border)",
+              borderRadius: "12px", padding: "32px", animationDelay: "0.22s",
+            }}>
+              <div style={{
+                fontSize: "10px", letterSpacing: "0.22em", textTransform: "uppercase",
+                color: "#F59E0B", fontFamily: "var(--font-mono)", marginBottom: "20px",
+                display: "flex", alignItems: "center", gap: "8px",
+              }}>
+                <span style={{ display: "inline-block", width: "16px", height: "1px", background: "#F59E0B" }} />
+                More Languages
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                {barLangs.map((l, i) => <LangBar key={l._id || i} name={l.name} level={l.level} index={i} />)}
+              </div>
+            </div>
+          )}
         </div>
-      </section>
-    </>
+
+        {/* Right column — rings */}
+        <div className="skills-fade" style={{
+          background: "var(--bg2)", border: "1px solid var(--border)",
+          borderRadius: "12px", padding: "36px 32px", animationDelay: "0.1s",
+        }}>
+          <div style={{
+            fontSize: "10px", letterSpacing: "0.22em", textTransform: "uppercase",
+            color: "#00D4FF", fontFamily: "var(--font-mono)", marginBottom: "32px",
+            display: "flex", alignItems: "center", gap: "8px",
+          }}>
+            <span style={{ display: "inline-block", width: "16px", height: "1px", background: "#00D4FF" }} />
+            Programming Languages
+          </div>
+
+          {/* 3 × 3 ring grid */}
+          <div style={{
+            display:             "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap:                 "32px 16px",
+            justifyItems:        "center",
+          }}>
+            {ringLangs.map((l, i) => (
+              <div key={l._id || i} className="skills-fade" style={{ animationDelay: `${0.12 + i * 0.07}s` }}>
+                <Ring pct={l.level} name={l.name} size={110} />
+              </div>
+            ))}
+          </div>
+
+          {/* Legend */}
+          <div style={{
+            marginTop: "32px", paddingTop: "20px", borderTop: "1px solid var(--border)",
+            display: "flex", gap: "16px", flexWrap: "wrap", justifyContent: "center",
+          }}>
+            {[
+              { label: "Expert",       color: "#00D4FF", range: "80%+" },
+              { label: "Proficient",   color: "#2ECC71", range: "60–79%" },
+              { label: "Intermediate", color: "#F59E0B", range: "40–59%" },
+              { label: "Beginner",     color: "#EF4444", range: "<40%" },
+            ].map(item => (
+              <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span style={{
+                  width: "8px", height: "8px", borderRadius: "50%",
+                  background: item.color, flexShrink: 0,
+                  boxShadow: `0 0 6px ${item.color}`,
+                }} />
+                <span style={{
+                  fontSize: "10px", fontFamily: "var(--font-mono)",
+                  color: "rgba(var(--white-rgb),0.35)", letterSpacing: "0.06em",
+                }}>
+                  {item.label}{" "}
+                  <span style={{ color: item.color, opacity: 0.7 }}>{item.range}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
