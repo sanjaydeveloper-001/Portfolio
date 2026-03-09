@@ -1,5 +1,6 @@
 // components/Navbar.jsx
 import { useState, useEffect } from 'react';
+import { IoSunnyOutline , IoMoonOutline} from "react-icons/io5";
 import { Icon } from './Ui';
 
 export const NAV = [
@@ -58,7 +59,7 @@ export function Navbar({ profile, active, theme, onToggleTheme }) {
             onClick={onToggleTheme}
             aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
-            {theme === 'dark' ? '🌙' : '☀️'}
+            {theme === 'dark' ? <IoMoonOutline/> : <IoSunnyOutline />}
           </button>
           <button className="nav-cta" onClick={() => scrollTo('contact')}>
             Contact Me →
@@ -109,7 +110,7 @@ export function Navbar({ profile, active, theme, onToggleTheme }) {
             Contact Me →
           </button>
           <button className="mob-theme-btn" onClick={onToggleTheme}>
-            {theme === 'dark' ? '🌙 Light Mode' : '☀️ Dark Mode'}
+            {theme === 'dark' ? `Light Mode` : `Dark Mode`}
           </button>
         </div>
       </div>
