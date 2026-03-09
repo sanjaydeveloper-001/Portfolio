@@ -1,7 +1,7 @@
 // components/Projects.jsx
 import { useState, useEffect, useRef, useCallback } from "react";
-import ProjectCard from "./ProjectCard";
-import ProjectOverlay from "./ProjectOverlay";
+import ProjectCard from "./Projectcard";
+import ProjectOverlay from "./Projectoverlay";
 
 const CARD_W   = 250;
 const CARD_GAP = 18;

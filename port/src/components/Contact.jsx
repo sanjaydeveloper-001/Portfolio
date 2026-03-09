@@ -1,12 +1,6 @@
-/**
- * components/Contact.jsx
- * Contact section + Footer
- */
-
-import { Icon } from './Ui';
 import { useContactForm } from '../hooks';
 
-export function Contact({ profile }) {
+export default function Contact({ profile }) {
   const { form, update, submit, status, errMsg, reset } = useContactForm();
 
   return (
@@ -113,22 +107,5 @@ export function Contact({ profile }) {
 
       </div>
     </section>
-  );
-}
-
-/* ── Footer ── */
-export function Footer({ profile }) {
-  return (
-    <footer>
-      <div className="footer-copy">
-        © <span>{profile?.name || 'Portfolio'}</span> {new Date().getFullYear()} — All rights reserved
-      </div>
-      <button
-        className="footer-back"
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      >
-        <Icon.ArrowU /> Back to Top
-      </button>
-    </footer>
   );
 }

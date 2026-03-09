@@ -2,19 +2,23 @@
 import { useState, useEffect } from 'react';
 
 import { Cursor, ScrollProgress, Loader } from './components/Ui';
-import { Navbar, NAV_IDS }               from './components/Navbar';
+import { Navbar, NAV_IDS }                from './components/Navbar';
 import Hero                               from './components/Hero';
 import About                              from './components/About';
 import Projects                           from './components/Projects';
+import Skills                             from './components/Skills';
 import Education                          from './components/Education';
-import Experience                          from './components/Experience';
-import {
-  Certifications, Interests
-}                                         from './components/Sections';
-import { Contact, Footer }                from './components/Contact';
+import Experience                         from './components/Experience';
+import Certifications                     from './components/Certifications';
+import Interests                          from './components/Interests';
+import Contact                            from './components/Contact';
+import Footer                             from './components/Footer';
+// import {
+//   Certifications, Interests
+// }                                         from './components/Sections';
+// import { Contact, Footer }                from './components/Contact';
 
 import { usePortfolioData, useActiveSection, useReveal } from './hooks';
-import Skills from './components/Skills';
 
 // Import the global CSS string (now theme‑aware)
 import { GLOBAL_CSS } from './components/globalStyles';
