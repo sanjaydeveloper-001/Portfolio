@@ -37,12 +37,12 @@ export default function Contact({ profile }) {
                 <a href={`mailto:${profile.email}`}>{profile.email}</a>
               </div>
             )}
-            {(profile?.contact || []).map((c, i) => (
-              <div key={i} className="c-info-item">
-                <small>{c.name}</small>
-                <span>{c.link}</span>
-              </div>
-            ))}
+            {/* // {(profile?.contact || []).map((c, i) => (
+            //   <div key={i} className="c-info-item">
+            //     <small>{c.name}</small>
+            //     <span>{c.link}</span>
+            //   </div>
+            ))} */}
           </div>
         </div>
 
