@@ -56,18 +56,18 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // Serve uploaded files
-app.use("/uploads", express.static(uploadDir));
+app.use("/files/uploads", express.static(uploadDir));
 
 // ---------------- API ROUTES ----------------
 
-app.use("/api/profile", profileRoutes);
-app.use("/api/education", educationRoutes);
-app.use("/api/experience", experienceRoutes);
-app.use("/api/projects", projectRoutes);
-app.use("/api/skills", skillRoutes);
-app.use("/api/certifications", certificationRoutes);
-app.use("/api/interests", interestRoutes);
-app.use("/api/upload", uploadRoutes);
+app.use("/sanjay/profile", profileRoutes);
+app.use("/sanjay/education", educationRoutes);
+app.use("/sanjay/experience", experienceRoutes);
+app.use("/sanjay/projects", projectRoutes);
+app.use("/sanjay/skills", skillRoutes);
+app.use("/sanjay/certifications", certificationRoutes);
+app.use("/sanjay/interests", interestRoutes);
+app.use("/sanjay/upload", uploadRoutes);
 
 // ---------------- SERVE FRONTEND ----------------
 
@@ -78,7 +78,7 @@ const publicDir = path.join(__dirname, "public");
 app.use(express.static(publicDir));
 
 // SPA fallback (React Router / Vite Router)
-app.get("/*", (req, res) => {
+app.get("*", (req, res) => {
   res.sendFile(path.join(publicDir, "index.html"));
 });
 
