@@ -60,14 +60,14 @@ app.use("/files/uploads", express.static(uploadDir));
 
 // ---------------- API ROUTES ----------------
 
-app.use("/api/profile", profileRoutes);
-app.use("/api/education", educationRoutes);
-app.use("/api/experience", experienceRoutes);
-app.use("/api/projects", projectRoutes);
-app.use("/api/skills", skillRoutes);
-app.use("/api/certifications", certificationRoutes);
-app.use("/api/interests", interestRoutes);
-app.use("/api/upload", uploadRoutes);
+app.use("/user/profile", profileRoutes);
+app.use("/user/education", educationRoutes);
+app.use("/user/experience", experienceRoutes);
+app.use("/user/projects", projectRoutes);
+app.use("/user/skills", skillRoutes);
+app.use("/user/certifications", certificationRoutes);
+app.use("/user/interests", interestRoutes);
+app.use("/user/upload", uploadRoutes);
 
 // ---------------- SERVE FRONTEND ----------------
 
