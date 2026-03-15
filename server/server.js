@@ -78,7 +78,7 @@ const publicDir = path.join(__dirname, "public");
 app.use(express.static(publicDir));
 
 // SPA fallback (React Router / Vite Router)
-app.get("*", (req, res) => {
+app.get("/*", (req, res) => {
   res.sendFile(path.join(publicDir, "index.html"));
 });
 
