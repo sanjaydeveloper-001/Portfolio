@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 import mongoose from "mongoose";
 import { fileURLToPath } from "url";
-
+import cors from "cors";
 import connectDB from "./config/db.js";
 
 // Route imports
@@ -28,7 +28,7 @@ const __dirname = path.dirname(__filename);
 
 app.use(cors(
   {
-    origin:["https://porthandler.josan.tech", "https://www.josan.tech"],
+    origin:["https://www.josan.tech", "https://porthandler.josan.tech"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],  
   }
