@@ -32,20 +32,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ─────────────────────────────────────────────
-// CORS — allow only *.vercel.app and *.josan.tech
+// CORS — allow only www.josan.tech and porthandler.josan.tech
 // ─────────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  "https://www.josan.tech",
+  "https://porthandler.josan.tech",
+];
+
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. curl, Postman, server-to-server)
     if (!origin) return callback(null, true);
-
-    const isAllowed =
-      origin.endsWith(".vercel.app") ||
-      origin === "https://vercel.app" ||
-      origin.endsWith(".josan.tech") ||
-      origin === "https://josan.tech";
-
-    if (isAllowed) {
+    if (ALLOWED_ORIGINS.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error(`CORS: Origin not allowed — ${origin}`));
@@ -65,27 +62,13 @@ app.options("*", cors(corsOptions));
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  if (origin) {
-    const isAllowed =
-      origin.endsWith(".vercel.app") ||
-      origin === "https://vercel.app" ||
-      origin.endsWith(".josan.tech") ||
-      origin === "https://josan.tech";
-
-    if (isAllowed) {
-      res.setHeader("Access-Control-Allow-Origin", origin);
-      res.setHeader("Vary", "Origin");
-    }
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
   }
 
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,DELETE,OPTIONS,PATCH"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type,Authorization,X-Requested-With"
-  );
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Requested-With");
 
   if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
@@ -156,7 +139,7 @@ app.use("/user/interests",      interestRoutes);
 app.use("/user/upload",         uploadRoutes);
 
 // ─────────────────────────────────────────────
-// 404 handler for unmatched routes
+// 404 handler
 // ─────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
@@ -170,17 +153,11 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
 
   const origin = req.headers.origin;
-  if (origin) {
-    const isAllowed =
-      origin.endsWith(".vercel.app") ||
-      origin === "https://vercel.app" ||
-      origin.endsWith(".josan.tech") ||
-      origin === "https://josan.tech";
-
-    if (isAllowed) res.setHeader("Access-Control-Allow-Origin", origin);
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
   }
 
-  // Surface CORS rejections as 403 instead of 500
   if (err.message?.startsWith("CORS:")) {
     return res.status(403).json({ message: err.message });
   }
