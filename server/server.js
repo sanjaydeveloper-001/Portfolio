@@ -34,18 +34,23 @@ const __dirname = path.dirname(__filename);
 
 // Custom CORS middleware (handles both allowed origins)
 app.use((req, res, next) => {
+  const allowedOrigins = [
+    "https://porthandler.josan.tech",  // ← no trailing slash
+    "https://www.josan.tech",
+    "http://localhost:5173",
+  ];
+
   const origin = req.headers.origin;
-  if (origin && origin === "https://porthandler.josan.tech/" || origin === "https://www.josan.tech" || origin === "http://localhost:5173") {
+  if (origin && allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Vary", "Origin"); // Prevents caching issues on Vercel
+    res.setHeader("Vary", "Origin");
   }
 
-  // Handle preflight (OPTIONS) requests
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
-    res.setHeader("Access-Control-Max-Age", "86400"); // Cache preflight for 1 day
-    return res.sendStatus(200); 
+    res.setHeader("Access-Control-Max-Age", "86400");
+    return res.sendStatus(200);
   }
 
   next();
