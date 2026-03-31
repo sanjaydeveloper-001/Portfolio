@@ -1,6 +1,5 @@
 import express from "express";
 import dotenv from "dotenv";
-import cors from "cors";
 import path from "path";
 import fs from "fs";
 import mongoose from "mongoose";
@@ -18,86 +17,54 @@ import certificationRoutes from "./routes/certificationRoutes.js";
 import interestRoutes from "./routes/interestRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 
-// ─────────────────────────────────────────────
-// Load env variables FIRST
-// ─────────────────────────────────────────────
+// Load environment variables
 dotenv.config();
 
 const app = express();
 
-// ─────────────────────────────────────────────
 // Setup __dirname for ES Modules
-// ─────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ─────────────────────────────────────────────
-// CORS — allow only www.josan.tech and porthandler.josan.tech
-// ─────────────────────────────────────────────
-app.use(cors({
-  origin: [ "https://www.josan.tech", "https://porthandler.josan.tech" ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  optionsSuccessStatus: 200,
-}));
-// const ALLOWED_ORIGINS = [
-//   "https://www.josan.tech",
-//   "https://porthandler.josan.tech",
-// ];
+// ========== CORS Configuration ==========
+const ALLOWED_ORIGINS = [
+  "https://www.josan.tech",
+  "https://porthandler.josan.tech",
+];
 
-// const corsOptions = {
-//   origin: (origin, callback) => {
-//     if (!origin) return callback(null, true);
-//     if (ALLOWED_ORIGINS.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error(`CORS: Origin not allowed — ${origin}`));
-//     }
-//   },
-//   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-//   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-//   optionsSuccessStatus: 200,
-// };
+// Custom CORS middleware (handles both allowed origins)
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
 
-// app.use(cors(corsOptions));
-// app.options("*", cors(corsOptions));
+  // Set CORS headers if the origin is allowed
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin"); // Prevents caching issues on Vercel
+  }
 
-// // ─────────────────────────────────────────────
-// // Backup CORS header layer
-// // ─────────────────────────────────────────────
-// app.use((req, res, next) => {
-//   const origin = req.headers.origin;
+  // Handle preflight (OPTIONS) requests
+  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+    res.setHeader("Access-Control-Max-Age", "86400"); // Cache preflight for 1 day
+    return res.sendStatus(200);
+  }
 
-//   if (origin && ALLOWED_ORIGINS.includes(origin)) {
-//     res.setHeader("Access-Control-Allow-Origin", origin);
-//     res.setHeader("Vary", "Origin");
-//   }
+  next();
+});
 
-//   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH");
-//   res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Requested-With");
-
-//   if (req.method === "OPTIONS") return res.sendStatus(200);
-//   next();
-// });
-
-// ─────────────────────────────────────────────
-// Connect to MongoDB
-// ─────────────────────────────────────────────
+// ========== Connect to MongoDB ==========
 connectDB();
 
 mongoose.connection.on("connected", () => console.log("✅ MongoDB connected"));
 mongoose.connection.on("error", (err) => console.error("❌ MongoDB connection error:", err));
 mongoose.connection.on("disconnected", () => console.warn("⚠️  MongoDB disconnected"));
 
-// ─────────────────────────────────────────────
-// Body parsers
-// ─────────────────────────────────────────────
+// ========== Body Parsers ==========
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
-// ─────────────────────────────────────────────
-// Ensure uploads folder exists
-// ─────────────────────────────────────────────
+// ========== Static Files ==========
 const uploadDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -105,16 +72,12 @@ if (!fs.existsSync(uploadDir)) {
 }
 app.use("/files/uploads", express.static(uploadDir));
 
-// ─────────────────────────────────────────────
-// Root route
-// ─────────────────────────────────────────────
+// ========== Root Route ==========
 app.get("/", (req, res) => {
   res.json({ message: "Server is running ✅" });
 });
 
-// ─────────────────────────────────────────────
-// Debug route
-// ─────────────────────────────────────────────
+// ========== Debug Route ==========
 app.get("/debug", (req, res) => {
   const mongoStates = { 0: "disconnected", 1: "connected", 2: "connecting", 3: "disconnecting" };
   res.json({
@@ -127,14 +90,12 @@ app.get("/debug", (req, res) => {
     env: {
       NODE_ENV:  process.env.NODE_ENV  || "not set",
       PORT:      process.env.PORT      || "not set",
-      MONGO_URI: process.env.MONGO_URI ? "✅ set" : "❌ MISSING — this is your 500 error",
+      MONGO_URI: process.env.MONGO_URI ? "✅ set" : "❌ MISSING",
     },
   });
 });
 
-// ─────────────────────────────────────────────
-// API Routes
-// ─────────────────────────────────────────────
+// ========== API Routes ==========
 app.use("/user/profile",        profileRoutes);
 app.use("/user/education",      educationRoutes);
 app.use("/user/experience",     experienceRoutes);
@@ -144,20 +105,17 @@ app.use("/user/certifications", certificationRoutes);
 app.use("/user/interests",      interestRoutes);
 app.use("/user/upload",         uploadRoutes);
 
-// ─────────────────────────────────────────────
-// 404 handler
-// ─────────────────────────────────────────────
+// ========== 404 Handler ==========
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-// ─────────────────────────────────────────────
-// Global Error Handler
-// ─────────────────────────────────────────────
+// ========== Global Error Handler ==========
 app.use((err, req, res, next) => {
   console.error("🔥 Server Error:", err.message);
   console.error(err.stack);
 
+  // Ensure CORS headers are still set on error responses
   const origin = req.headers.origin;
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
@@ -174,9 +132,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ─────────────────────────────────────────────
-// Start Server
-// ─────────────────────────────────────────────
+// ========== Start Server ==========
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
