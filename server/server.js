@@ -34,13 +34,13 @@ const __dirname = path.dirname(__filename);
 
 // Custom CORS middleware (handles both allowed origins)
 app.use((req, res, next) => {
-  const allowedOrigins = [
-    "https://www.josan.tech",
-    "https://porthandler.josan.tech",
-  ];
+  // const allowedOrigins = [
+  //   "https://www.josan.tech",
+  //   "https://porthandler.josan.tech",
+  // ];
 
   const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
+  if (origin && (origin === "https://www.josan.tech" || origin === "https://porthandler.josan.tech")) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
   }
