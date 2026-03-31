@@ -35,7 +35,7 @@ mongoose.connection.on("disconnected", () => {
 // CORS setup
 app.use(
   cors({
-    origin: [process.env.CLIENT_URL1, process.env.CLIENT_URL2],
+    origin: [process.env.CLIENT_URL1, process.env.CLIENT_URL2, 'https://sanjay-porthandler.vercel.app', 'https://www.josan.tech'], // Allow both localhost and deployed frontend
   })
 );
 
