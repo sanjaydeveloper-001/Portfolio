@@ -32,29 +32,52 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ─────────────────────────────────────────────
-// CORS — ABSOLUTE FIRST middleware
-// Allows all origins
+// CORS — allow only *.vercel.app and *.josan.tech
 // ─────────────────────────────────────────────
 const corsOptions = {
-  origin: "*",
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. curl, Postman, server-to-server)
+    if (!origin) return callback(null, true);
+
+    const isAllowed =
+      origin.endsWith(".vercel.app") ||
+      origin === "https://vercel.app" ||
+      origin.endsWith(".josan.tech") ||
+      origin === "https://josan.tech";
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: Origin not allowed — ${origin}`));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   optionsSuccessStatus: 200,
 };
 
-// Apply CORS to every request
 app.use(cors(corsOptions));
-
-// Explicitly handle ALL preflight OPTIONS requests
 app.options("*", cors(corsOptions));
 
 // ─────────────────────────────────────────────
-// Force CORS headers on EVERY response
-// Backup layer — ensures headers survive even
-// when Express error handlers swallow them
+// Backup CORS header layer
 // ─────────────────────────────────────────────
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const origin = req.headers.origin;
+
+  if (origin) {
+    const isAllowed =
+      origin.endsWith(".vercel.app") ||
+      origin === "https://vercel.app" ||
+      origin.endsWith(".josan.tech") ||
+      origin === "https://josan.tech";
+
+    if (isAllowed) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Vary", "Origin");
+    }
+  }
+
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET,POST,PUT,DELETE,OPTIONS,PATCH"
@@ -63,9 +86,8 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Headers",
     "Content-Type,Authorization,X-Requested-With"
   );
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
+
+  if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
 });
 
@@ -74,15 +96,9 @@ app.use((req, res, next) => {
 // ─────────────────────────────────────────────
 connectDB();
 
-mongoose.connection.on("connected", () => {
-  console.log("✅ MongoDB connected");
-});
-mongoose.connection.on("error", (err) => {
-  console.error("❌ MongoDB connection error:", err);
-});
-mongoose.connection.on("disconnected", () => {
-  console.warn("⚠️  MongoDB disconnected");
-});
+mongoose.connection.on("connected", () => console.log("✅ MongoDB connected"));
+mongoose.connection.on("error", (err) => console.error("❌ MongoDB connection error:", err));
+mongoose.connection.on("disconnected", () => console.warn("⚠️  MongoDB disconnected"));
 
 // ─────────────────────────────────────────────
 // Body parsers
@@ -101,16 +117,17 @@ if (!fs.existsSync(uploadDir)) {
 app.use("/files/uploads", express.static(uploadDir));
 
 // ─────────────────────────────────────────────
-// Debug route — visit https://www.josan.tech/debug
-// to diagnose server & DB issues
+// Root route
+// ─────────────────────────────────────────────
+app.get("/", (req, res) => {
+  res.json({ message: "Server is running ✅" });
+});
+
+// ─────────────────────────────────────────────
+// Debug route
 // ─────────────────────────────────────────────
 app.get("/debug", (req, res) => {
-  const mongoStates = {
-    0: "disconnected",
-    1: "connected",
-    2: "connecting",
-    3: "disconnecting",
-  };
+  const mongoStates = { 0: "disconnected", 1: "connected", 2: "connecting", 3: "disconnecting" };
   res.json({
     status: "Server is running ✅",
     timestamp: new Date().toISOString(),
@@ -139,39 +156,34 @@ app.use("/user/interests",      interestRoutes);
 app.use("/user/upload",         uploadRoutes);
 
 // ─────────────────────────────────────────────
-// Serve Frontend (React/Vite build)
+// 404 handler for unmatched routes
 // ─────────────────────────────────────────────
-const publicDir = path.join(__dirname, "public");
-
-if (fs.existsSync(publicDir)) {
-  app.use(express.static(publicDir));
-
-  app.get("/*", (req, res) => {
-    // Never serve index.html for API, debug, asset, or upload routes
-    if (
-      req.path.startsWith("/user/") ||
-      req.path === "/debug" ||
-      req.path.startsWith("/assets/") ||
-      req.path.startsWith("/files/")
-    ) {
-      return res.status(404).json({ message: "Not found" });
-    }
-    res.sendFile(path.join(publicDir, "index.html"));
-  });
-} else {
-  console.warn("⚠️  No public/ folder found — frontend not being served");
-}
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
 
 // ─────────────────────────────────────────────
 // Global Error Handler
-// 4-param signature is required by Express
 // ─────────────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error("🔥 Server Error:", err.message);
   console.error(err.stack);
 
-  // Re-apply CORS headers — they can get dropped when errors are thrown
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const origin = req.headers.origin;
+  if (origin) {
+    const isAllowed =
+      origin.endsWith(".vercel.app") ||
+      origin === "https://vercel.app" ||
+      origin.endsWith(".josan.tech") ||
+      origin === "https://josan.tech";
+
+    if (isAllowed) res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+
+  // Surface CORS rejections as 403 instead of 500
+  if (err.message?.startsWith("CORS:")) {
+    return res.status(403).json({ message: err.message });
+  }
 
   res.status(500).json({
     message: "Something went wrong!",
