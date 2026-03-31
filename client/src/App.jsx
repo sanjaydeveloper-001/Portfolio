@@ -80,6 +80,15 @@ const typeColors = {
   'Freelance':  { bg: '#FFF1F2', border: '#FECDD3', color: '#9F1239' },
 };
 
+// Helper to safely extract an array from any API response shape
+const toArray = (data, ...keys) => {
+  if (Array.isArray(data)) return data;
+  for (const key of keys) {
+    if (Array.isArray(data?.[key])) return data[key];
+  }
+  return [];
+};
+
 /* ─────────────────────────────────────────────
    Overview / Dashboard
 ───────────────────────────────────────────── */
@@ -95,13 +104,40 @@ const Overview = () => {
 
   useEffect(() => {
     const all = [
-      API.get('/profile').then(r => setProfile(r.data)).catch(() => {}),
-      API.get('/education').then(r => setEducation(r.data)).catch(() => {}),
-      API.get('/experience').then(r => setExperience(r.data)).catch(() => {}),
-      API.get('/projects').then(r => setProjects(r.data)).catch(() => {}),
-      API.get('/skills').then(r => setSkills(r.data)).catch(() => {}),
-      API.get('/certifications').then(r => setCerts(r.data)).catch(() => {}),
-      API.get('/interests').then(r => setInterests(r.data?.interests || [])).catch(() => {}),
+      API.get('/profile')
+        .then(r => setProfile(r.data))
+        .catch(() => {}),
+
+      API.get('/education')
+        .then(r => setEducation(toArray(r.data, 'education', 'data')))
+        .catch(() => {}),
+
+      API.get('/experience')
+        .then(r => setExperience(toArray(r.data, 'experience', 'data')))
+        .catch(() => {}),
+
+      API.get('/projects')
+        .then(r => setProjects(toArray(r.data, 'projects', 'data')))
+        .catch(() => {}),
+
+      API.get('/skills')
+        .then(r => {
+          const d = r.data;
+          setSkills({
+            languages:        Array.isArray(d?.languages)        ? d.languages        : [],
+            frameworks_tools: Array.isArray(d?.frameworks_tools) ? d.frameworks_tools : [],
+            softSkills:       Array.isArray(d?.softSkills)       ? d.softSkills       : [],
+          });
+        })
+        .catch(() => {}),
+
+      API.get('/certifications')
+        .then(r => setCerts(toArray(r.data, 'certifications', 'data')))
+        .catch(() => {}),
+
+      API.get('/interests')
+        .then(r => setInterests(toArray(r.data?.interests ?? r.data, 'interests', 'data')))
+        .catch(() => {}),
     ];
     Promise.all(all).finally(() => setLoading(false));
   }, []);
@@ -230,8 +266,13 @@ const Overview = () => {
 
         {/* Education */}
         <SectionCard title="Education" icon={GraduationCap} linkTo="/education" count={education.length} empty={education.length === 0}>
-          {education.length > 3 ? education.slice(0, 3).map((ed, i) => (
-            <div key={ed._id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', paddingBottom: i < Math.min(education.length, 3) - 1 ? '12px' : '0', marginBottom: i < Math.min(education.length, 3) - 1 ? '12px' : '0', borderBottom: i < Math.min(education.length, 3) - 1 ? '1px solid #F4F4F5' : 'none' }}>
+          {education.slice(0, 3).map((ed, i) => (
+            <div key={ed._id} style={{
+              display: 'flex', gap: '12px', alignItems: 'flex-start',
+              paddingBottom: i < Math.min(education.length, 3) - 1 ? '12px' : '0',
+              marginBottom: i < Math.min(education.length, 3) - 1 ? '12px' : '0',
+              borderBottom: i < Math.min(education.length, 3) - 1 ? '1px solid #F4F4F5' : 'none',
+            }}>
               <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '13px', fontWeight: '700', color: '#3B82F6', fontFamily: 'DM Sans, sans-serif' }}>{i + 1}</div>
               <div style={{ minWidth: 0 }}>
                 <p style={{ fontSize: '13.5px', fontWeight: '600', color: '#18181B', fontFamily: 'DM Sans, sans-serif', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ed.institution}</p>
@@ -242,7 +283,7 @@ const Overview = () => {
                 </div>
               </div>
             </div>
-          )) : '' }
+          ))}
         </SectionCard>
 
         {/* Experience */}
@@ -356,10 +397,10 @@ function App() {
       <Routes>
         <Route path='/login' element={<Login />} />
         <Route path="/" element={
-          <ProtectedRoute >
+          <ProtectedRoute>
             <AdminLayout />
-          </ProtectedRoute> }>
-
+          </ProtectedRoute>
+        }>
           <Route index element={<Overview />} />
           <Route path="profile" element={<ProfileForm />} />
           <Route path="education" element={<EducationList />} />

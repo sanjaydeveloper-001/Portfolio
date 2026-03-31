@@ -9,14 +9,48 @@ const SkillForm = () => {
   const [softInput, setSoftInput] = useState('');
   const { toasts, toast } = useToast();
 
-  useEffect(() => { API.get('/skills').then(r => setSkills(r.data)).catch(() => {}); }, []);
+  useEffect(() => {
+    API.get('/skills')
+      .then(r => {
+        const d = r.data;
+        setSkills({
+          languages:        Array.isArray(d?.languages)        ? d.languages        : [],
+          frameworks_tools: Array.isArray(d?.frameworks_tools) ? d.frameworks_tools : [],
+          softSkills:       Array.isArray(d?.softSkills)       ? d.softSkills       : [],
+        });
+      })
+      .catch(() => {});
+  }, []);
 
-  const handleLangAdd = () => { if (langInput.name && langInput.level) { setSkills({ ...skills, languages: [...skills.languages, { name: langInput.name, level: parseInt(langInput.level) }] }); setLangInput({ name: '', level: '' }); } };
-  const handleLangRemove = (i) => setSkills({ ...skills, languages: skills.languages.filter((_, idx) => idx !== i) });
-  const handleToolAdd = () => { if (toolInput.trim()) { setSkills({ ...skills, frameworks_tools: [...skills.frameworks_tools, toolInput.trim()] }); setToolInput(''); } };
-  const handleToolRemove = (i) => setSkills({ ...skills, frameworks_tools: skills.frameworks_tools.filter((_, idx) => idx !== i) });
-  const handleSoftAdd = () => { if (softInput.trim()) { setSkills({ ...skills, softSkills: [...skills.softSkills, softInput.trim()] }); setSoftInput(''); } };
-  const handleSoftRemove = (i) => setSkills({ ...skills, softSkills: skills.softSkills.filter((_, idx) => idx !== i) });
+  const handleLangAdd = () => {
+    if (langInput.name && langInput.level) {
+      setSkills({ ...skills, languages: [...skills.languages, { name: langInput.name, level: parseInt(langInput.level) }] });
+      setLangInput({ name: '', level: '' });
+    }
+  };
+
+  const handleLangRemove = (i) =>
+    setSkills({ ...skills, languages: skills.languages.filter((_, idx) => idx !== i) });
+
+  const handleToolAdd = () => {
+    if (toolInput.trim()) {
+      setSkills({ ...skills, frameworks_tools: [...skills.frameworks_tools, toolInput.trim()] });
+      setToolInput('');
+    }
+  };
+
+  const handleToolRemove = (i) =>
+    setSkills({ ...skills, frameworks_tools: skills.frameworks_tools.filter((_, idx) => idx !== i) });
+
+  const handleSoftAdd = () => {
+    if (softInput.trim()) {
+      setSkills({ ...skills, softSkills: [...skills.softSkills, softInput.trim()] });
+      setSoftInput('');
+    }
+  };
+
+  const handleSoftRemove = (i) =>
+    setSkills({ ...skills, softSkills: skills.softSkills.filter((_, idx) => idx !== i) });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,13 +69,19 @@ const SkillForm = () => {
       {toasts}
 
       <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <div><h1 className="page-title">Skills</h1><p className="page-subtitle">Your technical and soft skill proficiencies</p></div>
+        <div>
+          <h1 className="page-title">Skills</h1>
+          <p className="page-subtitle">Your technical and soft skill proficiencies</p>
+        </div>
         <button type="submit" className="btn btn-success" style={{ padding: '9px 22px' }}>✓ Save Skills</button>
       </div>
 
       {/* Languages */}
       <div className="card" style={{ marginBottom: '16px' }}>
-        <div className="card-header"><span className="card-title">Programming Languages</span><span style={{ fontSize: '12px', color: '#A1A1AA', fontFamily: 'DM Sans, sans-serif' }}>{skills.languages.length} added</span></div>
+        <div className="card-header">
+          <span className="card-title">Programming Languages</span>
+          <span style={{ fontSize: '12px', color: '#A1A1AA', fontFamily: 'DM Sans, sans-serif' }}>{skills.languages.length} added</span>
+        </div>
         <div className="card-body">
           {skills.languages.length > 0 && (
             <div style={{ display: 'grid', gap: '10px', marginBottom: '16px' }}>
@@ -60,8 +100,14 @@ const SkillForm = () => {
           <div className="divider" style={{ marginTop: 0 }} />
           <p className="section-label">Add Language</p>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: '140px' }}><label className="form-label">Language</label><input type="text" placeholder="e.g. Python" value={langInput.name} onChange={e => setLangInput({ ...langInput, name: e.target.value })} className="form-input" /></div>
-            <div style={{ width: '130px' }}><label className="form-label">Level (0–100)</label><input type="number" placeholder="e.g. 85" min="0" max="100" value={langInput.level} onChange={e => setLangInput({ ...langInput, level: e.target.value })} className="form-input" /></div>
+            <div style={{ flex: 1, minWidth: '140px' }}>
+              <label className="form-label">Language</label>
+              <input type="text" placeholder="e.g. Python" value={langInput.name} onChange={e => setLangInput({ ...langInput, name: e.target.value })} className="form-input" />
+            </div>
+            <div style={{ width: '130px' }}>
+              <label className="form-label">Level (0–100)</label>
+              <input type="number" placeholder="e.g. 85" min="0" max="100" value={langInput.level} onChange={e => setLangInput({ ...langInput, level: e.target.value })} className="form-input" />
+            </div>
             <button type="button" onClick={handleLangAdd} className="btn btn-primary">Add</button>
           </div>
         </div>
@@ -69,23 +115,65 @@ const SkillForm = () => {
 
       {/* Tools */}
       <div className="card" style={{ marginBottom: '16px' }}>
-        <div className="card-header"><span className="card-title">Frameworks & Tools</span><span style={{ fontSize: '12px', color: '#A1A1AA', fontFamily: 'DM Sans, sans-serif' }}>{skills.frameworks_tools.length} added</span></div>
+        <div className="card-header">
+          <span className="card-title">Frameworks & Tools</span>
+          <span style={{ fontSize: '12px', color: '#A1A1AA', fontFamily: 'DM Sans, sans-serif' }}>{skills.frameworks_tools.length} added</span>
+        </div>
         <div className="card-body">
-          {skills.frameworks_tools.length > 0 && <div className="tags-wrap" style={{ marginBottom: '16px' }}>{skills.frameworks_tools.map((t, i) => <span key={i} className="tag" style={{ background: '#F0FDF4', borderColor: '#BBF7D0', color: '#166534' }}>{t}<button type="button" onClick={() => handleToolRemove(i)} className="tag-remove">×</button></span>)}</div>}
+          {skills.frameworks_tools.length > 0 && (
+            <div className="tags-wrap" style={{ marginBottom: '16px' }}>
+              {skills.frameworks_tools.map((t, i) => (
+                <span key={i} className="tag" style={{ background: '#F0FDF4', borderColor: '#BBF7D0', color: '#166534' }}>
+                  {t}
+                  <button type="button" onClick={() => handleToolRemove(i)} className="tag-remove">×</button>
+                </span>
+              ))}
+            </div>
+          )}
           <div className="divider" style={{ marginTop: 0 }} />
           <p className="section-label">Add Tool or Framework</p>
-          <div className="inline-add"><input value={toolInput} onChange={e => setToolInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleToolAdd(); }}} placeholder="e.g. React, Docker, PostgreSQL" className="form-input" /><button type="button" onClick={handleToolAdd} className="btn btn-primary">Add</button></div>
+          <div className="inline-add">
+            <input
+              value={toolInput}
+              onChange={e => setToolInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleToolAdd(); } }}
+              placeholder="e.g. React, Docker, PostgreSQL"
+              className="form-input"
+            />
+            <button type="button" onClick={handleToolAdd} className="btn btn-primary">Add</button>
+          </div>
         </div>
       </div>
 
       {/* Soft Skills */}
       <div className="card" style={{ marginBottom: '24px' }}>
-        <div className="card-header"><span className="card-title">Soft Skills</span><span style={{ fontSize: '12px', color: '#A1A1AA', fontFamily: 'DM Sans, sans-serif' }}>{skills.softSkills.length} added</span></div>
+        <div className="card-header">
+          <span className="card-title">Soft Skills</span>
+          <span style={{ fontSize: '12px', color: '#A1A1AA', fontFamily: 'DM Sans, sans-serif' }}>{skills.softSkills.length} added</span>
+        </div>
         <div className="card-body">
-          {skills.softSkills.length > 0 && <div className="tags-wrap" style={{ marginBottom: '16px' }}>{skills.softSkills.map((s, i) => <span key={i} className="tag" style={{ background: '#FAF5FF', borderColor: '#E9D5FF', color: '#6B21A8' }}>{s}<button type="button" onClick={() => handleSoftRemove(i)} className="tag-remove">×</button></span>)}</div>}
+          {skills.softSkills.length > 0 && (
+            <div className="tags-wrap" style={{ marginBottom: '16px' }}>
+              {skills.softSkills.map((s, i) => (
+                <span key={i} className="tag" style={{ background: '#FAF5FF', borderColor: '#E9D5FF', color: '#6B21A8' }}>
+                  {s}
+                  <button type="button" onClick={() => handleSoftRemove(i)} className="tag-remove">×</button>
+                </span>
+              ))}
+            </div>
+          )}
           <div className="divider" style={{ marginTop: 0 }} />
           <p className="section-label">Add Soft Skill</p>
-          <div className="inline-add"><input value={softInput} onChange={e => setSoftInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSoftAdd(); }}} placeholder="e.g. Communication, Leadership" className="form-input" /><button type="button" onClick={handleSoftAdd} className="btn btn-primary">Add</button></div>
+          <div className="inline-add">
+            <input
+              value={softInput}
+              onChange={e => setSoftInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSoftAdd(); } }}
+              placeholder="e.g. Communication, Leadership"
+              className="form-input"
+            />
+            <button type="button" onClick={handleSoftAdd} className="btn btn-primary">Add</button>
+          </div>
         </div>
       </div>
     </form>
