@@ -25,53 +25,33 @@ dotenv.config();
 
 const app = express();
 
+const corsOptions = {
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
+
+
 // ─────────────────────────────────────────────
 // Setup __dirname for ES Modules
 // ─────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ─────────────────────────────────────────────
-// CORS — ABSOLUTE FIRST middleware
-// Allows all origins
-// ─────────────────────────────────────────────
-const corsOptions = {
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  optionsSuccessStatus: 200,
-};
 
-// Apply CORS to every request
-app.use(cors(corsOptions));
-
-// Explicitly handle ALL preflight OPTIONS requests
-app.options("*", cors(corsOptions));
-
-// ─────────────────────────────────────────────
-// Force CORS headers on EVERY response
-// Backup layer — ensures headers survive even
-// when Express error handlers swallow them
-// ─────────────────────────────────────────────
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,DELETE,OPTIONS,PATCH"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type,Authorization,X-Requested-With"
-  );
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Requested-With");
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
   next();
 });
 
-// ─────────────────────────────────────────────
-// Connect to MongoDB
-// ─────────────────────────────────────────────
 connectDB();
 
 mongoose.connection.on("connected", () => {
@@ -119,10 +99,13 @@ app.get("/debug", (req, res) => {
       readyState: mongoose.connection.readyState,
     },
     env: {
-      NODE_ENV:  process.env.NODE_ENV  || "not set",
-      PORT:      process.env.PORT      || "not set",
-      MONGO_URI: process.env.MONGO_URI ? "✅ set" : "❌ MISSING — this is your 500 error",
+      NODE_ENV:    process.env.NODE_ENV    || "not set",
+      PORT:        process.env.PORT        || "not set",
+      MONGO_URI:   process.env.MONGO_URI   ? "✅ set" : "❌ MISSING — this is your 500 error",
+      CLIENT_URL1: process.env.CLIENT_URL1 || "not set",
+      CLIENT_URL2: process.env.CLIENT_URL2 || "not set",
     },
+    allowedOrigins,
   });
 });
 
@@ -166,7 +149,11 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
 
   // Re-apply CORS headers — they can get dropped when errors are thrown
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
 
   res.status(500).json({
     message: "Something went wrong!",
