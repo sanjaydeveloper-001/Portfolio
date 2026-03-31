@@ -33,31 +33,12 @@ const __dirname = path.dirname(__filename);
 
 // ─────────────────────────────────────────────
 // CORS — ABSOLUTE FIRST middleware
-// Must run before everything so headers are
-// always present even when routes crash with 500
+// Allows all origins
 // ─────────────────────────────────────────────
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:3000",
-  "https://sanjay-porthandler.vercel.app",
-  "https://www.josan.tech",
-  "https://josan.tech",
-];
-
-if (process.env.CLIENT_URL1) allowedOrigins.push(process.env.CLIENT_URL1);
-if (process.env.CLIENT_URL2) allowedOrigins.push(process.env.CLIENT_URL2);
-
 const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (Postman, curl, mobile apps)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    console.warn(`⚠️  CORS blocked origin: ${origin}`);
-    return callback(null, false);
-  },
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  credentials: true,
   optionsSuccessStatus: 200,
 };
 
@@ -73,19 +54,15 @@ app.options("*", cors(corsOptions));
 // when Express error handlers swallow them
 // ─────────────────────────────────────────────
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader(
-      "Access-Control-Allow-Methods",
-      "GET,POST,PUT,DELETE,OPTIONS,PATCH"
-    );
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "Content-Type,Authorization,X-Requested-With"
-    );
-  }
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,DELETE,OPTIONS,PATCH"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type,Authorization,X-Requested-With"
+  );
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
@@ -142,13 +119,10 @@ app.get("/debug", (req, res) => {
       readyState: mongoose.connection.readyState,
     },
     env: {
-      NODE_ENV:    process.env.NODE_ENV    || "not set",
-      PORT:        process.env.PORT        || "not set",
-      MONGO_URI:   process.env.MONGO_URI   ? "✅ set" : "❌ MISSING — this is your 500 error",
-      CLIENT_URL1: process.env.CLIENT_URL1 || "not set",
-      CLIENT_URL2: process.env.CLIENT_URL2 || "not set",
+      NODE_ENV:  process.env.NODE_ENV  || "not set",
+      PORT:      process.env.PORT      || "not set",
+      MONGO_URI: process.env.MONGO_URI ? "✅ set" : "❌ MISSING — this is your 500 error",
     },
-    allowedOrigins,
   });
 });
 
@@ -192,11 +166,7 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
 
   // Re-apply CORS headers — they can get dropped when errors are thrown
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-  }
+  res.setHeader("Access-Control-Allow-Origin", "*");
 
   res.status(500).json({
     message: "Something went wrong!",
