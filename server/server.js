@@ -40,7 +40,7 @@ app.use((req, res, next) => {
   // ];
 
   const origin = req.headers.origin;
-  if (origin && (origin === "https://www.josan.tech" || origin === "https://porthandler.josan.tech")) {
+  if (origin && origin.endsWith("josan.tech")) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
   }
