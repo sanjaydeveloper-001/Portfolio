@@ -35,9 +35,8 @@ const __dirname = path.dirname(__filename);
 // Custom CORS middleware (handles both allowed origins)
 app.use((req, res, next) => {
   const allowedOrigins = [
-    "https://porthandler.josan.tech",  // ← no trailing slash
     "https://www.josan.tech",
-    "http://localhost:5173",
+    "https://porthandler.josan.tech",
   ];
 
   const origin = req.headers.origin;
