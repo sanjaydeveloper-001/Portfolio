@@ -27,17 +27,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ========== CORS Configuration ==========
-const ALLOWED_ORIGINS = [
-  "https://www.josan.tech",
-  "https://porthandler.josan.tech",
-];
+// const ALLOWED_ORIGINS = [
+//   "https://www.josan.tech",
+//   "https://porthandler.josan.tech",
+// ];
 
 // Custom CORS middleware (handles both allowed origins)
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-
-  // Set CORS headers if the origin is allowed
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+  if (origin && origin === "https://porthandler.josan.tech/" || origin === "https://www.josan.tech" || origin === "http://localhost:5173") {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin"); // Prevents caching issues on Vercel
   }
@@ -47,7 +45,7 @@ app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
     res.setHeader("Access-Control-Max-Age", "86400"); // Cache preflight for 1 day
-    return res.sendStatus(200);
+    return res.sendStatus(200); 
   }
 
   next();
