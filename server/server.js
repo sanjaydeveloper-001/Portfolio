@@ -26,17 +26,7 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use(cors({
-    origin:["https://porthandler.josan.tech"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-  }
-));
-
-app.use(cors({
-    origin:["https://www.josan.tech"],
-    methods: ["GET"],
-  }
-));
+app.use(cors());
 
 // ========== Connect to MongoDB ==========
 connectDB();
