@@ -5,13 +5,11 @@ export const uploadImage = (req, res) => {
     }
 
     const base64 = req.file.buffer.toString("base64");
-
     const imageUrl = `data:${req.file.mimetype};base64,${base64}`;
 
     res.json({ url: imageUrl });
-
   } catch (err) {
-    console.error("Upload error:", err);
+    console.error("uploadImage error:", err.message);
     res.status(500).json({ message: err.message });
   }
 };

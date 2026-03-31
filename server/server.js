@@ -18,13 +18,23 @@ import certificationRoutes from "./routes/certificationRoutes.js";
 import interestRoutes from "./routes/interestRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 
-// Load env variables FIRST before anything else
+// ─────────────────────────────────────────────
+// Load env variables FIRST
+// ─────────────────────────────────────────────
 dotenv.config();
 
 const app = express();
 
 // ─────────────────────────────────────────────
-// CORS — must be FIRST, before all other middleware
+// Setup __dirname for ES Modules
+// ─────────────────────────────────────────────
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ─────────────────────────────────────────────
+// CORS — ABSOLUTE FIRST middleware
+// Must run before everything so headers are
+// always present even when routes crash with 500
 // ─────────────────────────────────────────────
 const allowedOrigins = [
   "http://localhost:5173",
@@ -34,45 +44,65 @@ const allowedOrigins = [
   "https://josan.tech",
 ];
 
-// Add any extra origins from .env
 if (process.env.CLIENT_URL1) allowedOrigins.push(process.env.CLIENT_URL1);
 if (process.env.CLIENT_URL2) allowedOrigins.push(process.env.CLIENT_URL2);
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Postman)
+    // Allow requests with no origin (Postman, curl, mobile apps)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    console.warn(`CORS blocked for origin: ${origin}`);
-    return callback(new Error(`CORS policy: origin ${origin} not allowed`));
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    console.warn(`⚠️  CORS blocked origin: ${origin}`);
+    return callback(null, false);
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   credentials: true,
-  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+  optionsSuccessStatus: 200,
 };
 
+// Apply CORS to every request
 app.use(cors(corsOptions));
 
-// Handle ALL preflight OPTIONS requests
+// Explicitly handle ALL preflight OPTIONS requests
 app.options("*", cors(corsOptions));
+
+// ─────────────────────────────────────────────
+// Force CORS headers on EVERY response
+// Backup layer — ensures headers survive even
+// when Express error handlers swallow them
+// ─────────────────────────────────────────────
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET,POST,PUT,DELETE,OPTIONS,PATCH"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type,Authorization,X-Requested-With"
+    );
+  }
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // ─────────────────────────────────────────────
 // Connect to MongoDB
 // ─────────────────────────────────────────────
 connectDB();
 
-// MongoDB connection monitoring
 mongoose.connection.on("connected", () => {
   console.log("✅ MongoDB connected");
 });
-
 mongoose.connection.on("error", (err) => {
   console.error("❌ MongoDB connection error:", err);
 });
-
 mongoose.connection.on("disconnected", () => {
   console.warn("⚠️  MongoDB disconnected");
 });
@@ -84,27 +114,18 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // ─────────────────────────────────────────────
-// Setup __dirname for ES Modules
-// ─────────────────────────────────────────────
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// ─────────────────────────────────────────────
 // Ensure uploads folder exists
 // ─────────────────────────────────────────────
 const uploadDir = path.join(__dirname, "uploads");
-
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
   console.log("✅ Uploads folder created");
 }
-
-// Serve uploaded files statically
 app.use("/files/uploads", express.static(uploadDir));
 
 // ─────────────────────────────────────────────
-// Debug route — visit /debug to check server health
-// Remove this in production once confirmed working
+// Debug route — visit https://www.josan.tech/debug
+// to diagnose server & DB issues
 // ─────────────────────────────────────────────
 app.get("/debug", (req, res) => {
   const mongoStates = {
@@ -114,7 +135,7 @@ app.get("/debug", (req, res) => {
     3: "disconnecting",
   };
   res.json({
-    status: "Server is running",
+    status: "Server is running ✅",
     timestamp: new Date().toISOString(),
     mongo: {
       state: mongoStates[mongoose.connection.readyState] || "unknown",
@@ -123,7 +144,7 @@ app.get("/debug", (req, res) => {
     env: {
       NODE_ENV:    process.env.NODE_ENV    || "not set",
       PORT:        process.env.PORT        || "not set",
-      MONGO_URI:   process.env.MONGO_URI   ? "✅ set" : "❌ MISSING",
+      MONGO_URI:   process.env.MONGO_URI   ? "✅ set" : "❌ MISSING — this is your 500 error",
       CLIENT_URL1: process.env.CLIENT_URL1 || "not set",
       CLIENT_URL2: process.env.CLIENT_URL2 || "not set",
     },
@@ -151,10 +172,9 @@ const publicDir = path.join(__dirname, "public");
 if (fs.existsSync(publicDir)) {
   app.use(express.static(publicDir));
 
-  // SPA fallback — serve index.html for all non-API routes
   app.get("/*", (req, res) => {
-    // Don't serve index.html for /user/* API routes
-    if (req.path.startsWith("/user/")) {
+    // Never serve index.html for API or debug routes
+    if (req.path.startsWith("/user/") || req.path === "/debug") {
       return res.status(404).json({ message: "API route not found" });
     }
     res.sendFile(path.join(publicDir, "index.html"));
@@ -165,15 +185,17 @@ if (fs.existsSync(publicDir)) {
 
 // ─────────────────────────────────────────────
 // Global Error Handler
+// 4-param signature is required by Express
 // ─────────────────────────────────────────────
 app.use((err, req, res, next) => {
-  // Log the full error for debugging
   console.error("🔥 Server Error:", err.message);
   console.error(err.stack);
 
-  // Handle CORS errors specifically
-  if (err.message && err.message.startsWith("CORS policy")) {
-    return res.status(403).json({ message: err.message });
+  // Re-apply CORS headers — they can get dropped when errors are thrown
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
   }
 
   res.status(500).json({
@@ -189,5 +211,5 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🔗 Debug: http://localhost:${PORT}/debug`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/debug`);
 });
