@@ -115,7 +115,7 @@ export default function Hero({ profile }) {
                 className="btn btn-outline"
                 onClick={() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })}
               >
-                View Portfolio →
+                My Works →
               </button>
               {profile?.cvLink && (
                 <a className="btn btn-accent" href={profile.cvLink} target="_blank" rel="noopener noreferrer">
