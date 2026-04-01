@@ -39,20 +39,27 @@ export default function Projects({ projects = [] }) {
   return (
     <>
       <section id="projects">
-        {/* Header */}
-        <div style={{ marginBottom:"52px" }}>
-          <div style={{ fontSize:"10px", letterSpacing:"0.24em", textTransform:"uppercase", color:"rgba(var(--white-rgb),0.35)", fontFamily:"var(--font-mono)", marginBottom:"12px" }}>
+        {/* Header — size unified with all other sections via .sec-heading */}
+        <div style={{ marginBottom: "52px" }}>
+          <div style={{
+            fontSize:      "10px",
+            letterSpacing: "0.24em",
+            textTransform: "uppercase",
+            color:         "rgba(255,255,255,0.35)",
+            fontFamily:    "var(--font-mono)",
+            marginBottom:  "12px",
+          }}>
             Selected Works
           </div>
-          <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(32px,4vw,52px)", letterSpacing:"0.03em", margin:0, color:"var(--white)" }}>
-            My Projects<span style={{ color:"var(--accent)" }}>.</span>
+          <h2 className="sec-heading" style={{ margin: 0, color: "#FFFFFF" }}>
+            My Projects<span style={{ color: "var(--accent)" }}>.</span>
           </h2>
         </div>
 
         {/* Grid */}
         <div ref={gridRef} className="proj-grid">
           {visible.map((p, i) => (
-            <div key={p.num} className="proj-item" style={{ animationDelay:`${(i % cols) * 55}ms` }}>
+            <div key={p.num} className="proj-item" style={{ animationDelay: `${(i % cols) * 55}ms` }}>
               <ProjectCard project={p} onClick={() => setActive(p)} />
             </div>
           ))}
@@ -60,7 +67,7 @@ export default function Projects({ projects = [] }) {
 
         {/* Show all toggle */}
         {needsToggle && (
-          <div style={{ marginTop:"40px", display:"flex", justifyContent:"center" }}>
+          <div style={{ marginTop: "40px", display: "flex", justifyContent: "center" }}>
             <button className="show-all-btn" onClick={() => setShowAll(v => !v)}>
               {showAll ? "Show Less ↑" : `Show All — ${list.length} Projects ↓`}
             </button>

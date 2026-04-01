@@ -7,17 +7,18 @@ export default function About({ profile }) {
   const location = profile?.location || 'Chennai, India';
 
   const INFO = [
-    { label:'Phone',    value: phone    },
-    { label:'Email',    value: email    },
-    { label:'Location', value: location },
-    { label:'Stack',    value: 'MERN Developer' },
+    { label: 'Phone',    value: phone    },
+    { label: 'Email',    value: email    },
+    { label: 'Location', value: location },
+    { label: 'Stack',    value: 'MERN Developer' },
   ];
 
   return (
     <section id="about">
       <div className="about-wrap">
 
-        <div className="about-photo">
+        {/* Photo — column width reduced via inline override */}
+        <div className="about-photo" style={{ maxWidth: "300px", width: "100%" }}>
           <div className="about-photo-stat">
             <div className="about-photo-stat-num">{profile?.webBuilds || '15+'}</div>
             <div className="about-photo-stat-label">Webs Built</div>
@@ -27,11 +28,19 @@ export default function About({ profile }) {
             <img src={profile.profilePhoto} alt={name} />
           ) : (
             <div style={{
-              width:'100%', aspectRatio:'3/4', background:'var(--bg3)', borderRadius:4,
-              display:'flex', alignItems:'center', justifyContent:'center',
-              fontFamily:'var(--font-display)', fontSize:72,
-              color:'rgba(var(--white-rgb),0.06)', letterSpacing:'0.06em',
-              position:'relative', zIndex:2,
+              width:        '100%',
+              aspectRatio:  '3/4',
+              background:   'var(--bg3)',
+              borderRadius: 4,
+              display:      'flex',
+              alignItems:   'center',
+              justifyContent: 'center',
+              fontFamily:   'var(--font-display)',
+              fontSize:     72,
+              color:        'rgba(var(--white-rgb),0.06)',
+              letterSpacing:'0.06em',
+              position:     'relative',
+              zIndex:       2,
             }}>SD</div>
           )}
 

@@ -32,15 +32,7 @@ function levelColor(pct) {
   return "#EF4444";
 }
 
-/* ─────────────────────────────────────────
-   Ring component
-   Uses a conic-gradient approach as the
-   primary ring — guaranteed to render
-   without SVG clipping issues.
-   A radial-gradient cutout creates the
-   donut hole with the icon inside.
-───────────────────────────────────────── */
-function Ring({ pct, name, size = 120 }) {
+function Ring({ pct, name, size = 85 }) {
   const [animated, setAnimated] = useState(0);
   const ref   = useRef(null);
   const color = levelColor(pct);
@@ -65,9 +57,7 @@ function Ring({ pct, name, size = 120 }) {
 
   const deg      = (animated / 100) * 360;
   const iconSize = Math.round(size * 0.36);
-  // Inner circle is 72% of outer — creates the donut ring thickness
   const innerPct = 72;
-  const trackW   = `${(100 - innerPct) / 2}%`;
 
   return (
     <div
@@ -76,28 +66,25 @@ function Ring({ pct, name, size = 120 }) {
         display:       "flex",
         flexDirection: "column",
         alignItems:    "center",
-        gap:           "12px",
+        gap:           "10px",
       }}
     >
-      {/* Outer ring container */}
+      {/* Outer ring */}
       <div
         style={{
           position:     "relative",
           width:        size,
           height:       size,
           borderRadius: "50%",
-          // Grey track — full circle background
           background:   `conic-gradient(
             ${color} 0deg ${deg}deg,
             rgba(255,255,255,0.08) ${deg}deg 360deg
           )`,
-          // Glow on the colored arc
-          boxShadow:    `0 0 0 0px transparent, inset 0 0 0 0px transparent`,
-          filter:       `drop-shadow(0 0 8px ${color}55)`,
+          filter:       `drop-shadow(0 0 6px ${color}55)`,
           flexShrink:   0,
         }}
       >
-        {/* Inner donut hole — dark circle with icon */}
+        {/* Donut hole */}
         <div
           style={{
             position:       "absolute",
@@ -114,45 +101,42 @@ function Ring({ pct, name, size = 120 }) {
             boxShadow:      "inset 0 2px 12px rgba(0,0,0,0.8)",
           }}
         >
-          {ICON_MAP[name]
-            ? (
-              <img
-                src={ICON_MAP[name]}
-                alt={name}
-                width={iconSize}
-                height={iconSize}
-                style={{ objectFit: "contain", display: "block" }}
-              />
-            )
-            : (
-              <span style={{
-                fontFamily:    "var(--font-mono)",
-                fontSize:      "13px",
-                fontWeight:    700,
-                color:         color,
-                letterSpacing: "0.04em",
-              }}>
-                {name.slice(0, 2).toUpperCase()}
-              </span>
-            )
-          }
+          {ICON_MAP[name] ? (
+            <img
+              src={ICON_MAP[name]}
+              alt={name}
+              width={iconSize}
+              height={iconSize}
+              style={{ objectFit: "contain", display: "block" }}
+            />
+          ) : (
+            <span style={{
+              fontFamily:    "var(--font-mono)",
+              fontSize:      "11px",
+              fontWeight:    700,
+              color:         color,
+              letterSpacing: "0.04em",
+            }}>
+              {name.slice(0, 2).toUpperCase()}
+            </span>
+          )}
         </div>
       </div>
 
       {/* Name + % */}
       <div style={{ textAlign: "center", lineHeight: 1.4 }}>
         <div style={{
-          fontSize:      "10px",
+          fontSize:      "9px",
           fontFamily:    "var(--font-mono)",
           color:         "rgba(255,255,255,0.5)",
           letterSpacing: "0.12em",
           textTransform: "uppercase",
-          marginBottom:  "4px",
+          marginBottom:  "3px",
         }}>
           {name}
         </div>
         <div style={{
-          fontSize:      "15px",
+          fontSize:      "13px",
           fontWeight:    700,
           color,
           fontFamily:    "var(--font-mono)",
@@ -173,18 +157,26 @@ function ToolChip({ name }) {
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        display:       "inline-flex",
-        alignItems:    "center",
-        gap:           "8px",
-        border:        `1px solid ${hov ? "rgba(0,212,255,0.4)" : "var(--border)"}`,
-        borderRadius:  "8px",
-        padding:       "8px 14px",
-        background:    hov ? "rgba(0,212,255,0.06)" : "rgba(var(--white-rgb),0.03)",
-        transition:    "border-color .2s, background .2s, transform .2s",
-        transform:     hov ? "translateY(-2px)" : "none",
+        display:      "inline-flex",
+        alignItems:   "center",
+        gap:          "8px",
+        border:       `1px solid ${hov ? "rgba(0,212,255,0.4)" : "var(--border)"}`,
+        borderRadius: "8px",
+        padding:      "8px 14px",
+        background:   hov ? "rgba(0,212,255,0.06)" : "rgba(var(--white-rgb),0.03)",
+        transition:   "border-color .2s, background .2s, transform .2s",
+        transform:    hov ? "translateY(-2px)" : "none",
       }}
     >
-      {icon && <img src={icon} alt={name} width={16} height={16} style={{ objectFit: "contain" }} />}
+      {icon && (
+        <img
+          src={icon}
+          alt={name}
+          width={16}
+          height={16}
+          style={{ objectFit: "contain" }}
+        />
+      )}
       <span style={{
         fontSize:      "12px",
         fontFamily:    "var(--font-mono)",
@@ -212,7 +204,13 @@ function SoftPill({ name, index }) {
       padding:      "8px 18px",
       background:   `${c}0a`,
     }}>
-      <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: c, flexShrink: 0 }} />
+      <span style={{
+        width:        "6px",
+        height:       "6px",
+        borderRadius: "50%",
+        background:   c,
+        flexShrink:   0,
+      }} />
       <span style={{
         fontSize:      "13px",
         color:         "rgba(var(--white-rgb),0.65)",
@@ -229,6 +227,7 @@ function LangBar({ name, level, index }) {
   const [width, setWidth] = useState(0);
   const ref   = useRef(null);
   const color = levelColor(level);
+
   useEffect(() => {
     const io = new IntersectionObserver(([e]) => {
       if (e.isIntersecting) {
@@ -239,14 +238,26 @@ function LangBar({ name, level, index }) {
     if (ref.current) io.observe(ref.current);
     return () => io.disconnect();
   }, [level, index]);
+
   return (
     <div ref={ref} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
       <div style={{ width: "80px", textAlign: "right", flexShrink: 0 }}>
-        <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "rgba(var(--white-rgb),0.45)", letterSpacing: "0.06em" }}>
+        <span style={{
+          fontSize:      "11px",
+          fontFamily:    "var(--font-mono)",
+          color:         "rgba(var(--white-rgb),0.45)",
+          letterSpacing: "0.06em",
+        }}>
           {name}
         </span>
       </div>
-      <div style={{ flex: 1, height: "4px", background: "rgba(var(--white-rgb),0.06)", borderRadius: "2px", overflow: "hidden" }}>
+      <div style={{
+        flex:         1,
+        height:       "4px",
+        background:   "rgba(var(--white-rgb),0.06)",
+        borderRadius: "2px",
+        overflow:     "hidden",
+      }}>
         <div style={{
           height:       "100%",
           width:        `${width}%`,
@@ -255,7 +266,14 @@ function LangBar({ name, level, index }) {
           transition:   "width .8s cubic-bezier(.16,1,.3,1)",
         }} />
       </div>
-      <div style={{ width: "34px", textAlign: "right", fontSize: "11px", fontFamily: "var(--font-mono)", color, flexShrink: 0 }}>
+      <div style={{
+        width:      "34px",
+        textAlign:  "right",
+        fontSize:   "11px",
+        fontFamily: "var(--font-mono)",
+        color,
+        flexShrink: 0,
+      }}>
         {level}%
       </div>
     </div>
@@ -264,8 +282,11 @@ function LangBar({ name, level, index }) {
 
 export default function Skills({ data = null }) {
   const skills = data || {
-    frameworks_tools: ["React", "Docker", "MongoDB", "FireBase", "MERN", "Tailwindcss", "Bootstrap", "Git", "Github", "VS Code", "ThingsBoard"],
-    softSkills:       ["LeaderShip", "Problem Solving", "Critical Thinking"],
+    frameworks_tools: [
+      "React", "Docker", "MongoDB", "FireBase", "MERN",
+      "Tailwindcss", "Bootstrap", "Git", "Github", "VS Code", "ThingsBoard",
+    ],
+    softSkills: ["LeaderShip", "Problem Solving", "Critical Thinking"],
     languages: [
       { name: "Java",        level: 75 },
       { name: "C",           level: 50 },
@@ -285,17 +306,25 @@ export default function Skills({ data = null }) {
   return (
     <section id="skills">
 
-      {/* Header */}
+      {/* Header — unified size */}
       <div className="skills-fade" style={{ marginBottom: "56px" }}>
         <div style={{
-          fontSize: "10px", letterSpacing: "0.24em", textTransform: "uppercase",
-          color: "rgba(var(--white-rgb),0.35)", fontFamily: "var(--font-mono)", marginBottom: "12px",
+          fontSize:      "10px",
+          letterSpacing: "0.24em",
+          textTransform: "uppercase",
+          color:         "rgba(var(--white-rgb),0.35)",
+          fontFamily:    "var(--font-mono)",
+          marginBottom:  "12px",
         }}>
           Expertise
         </div>
         <h2 style={{
-          fontFamily: "var(--font-display)", fontSize: "clamp(32px,4vw,52px)",
-          letterSpacing: "0.03em", margin: 0, color: "var(--white)",
+          fontFamily:    "var(--font-display)",
+          fontSize:      "clamp(44px,5vw,72px)",
+          letterSpacing: "0.04em",
+          lineHeight:    1,
+          margin:        0,
+          color:         "var(--white)",
         }}>
           Technologies<span style={{ color: "var(--accent)" }}>.</span>
         </h2>
@@ -309,13 +338,22 @@ export default function Skills({ data = null }) {
 
           {/* Frameworks & Tools */}
           <div className="skills-fade" style={{
-            background: "var(--bg2)", border: "1px solid var(--border)",
-            borderRadius: "12px", padding: "32px", animationDelay: "0.05s",
+            background:     "var(--bg2)",
+            border:         "1px solid var(--border)",
+            borderRadius:   "12px",
+            padding:        "32px",
+            animationDelay: "0.05s",
           }}>
             <div style={{
-              fontSize: "10px", letterSpacing: "0.22em", textTransform: "uppercase",
-              color: "#00D4FF", fontFamily: "var(--font-mono)", marginBottom: "20px",
-              display: "flex", alignItems: "center", gap: "8px",
+              fontSize:      "10px",
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
+              color:         "#00D4FF",
+              fontFamily:    "var(--font-mono)",
+              marginBottom:  "20px",
+              display:       "flex",
+              alignItems:    "center",
+              gap:           "8px",
             }}>
               <span style={{ display: "inline-block", width: "16px", height: "1px", background: "#00D4FF" }} />
               Frameworks &amp; Tools
@@ -331,75 +369,111 @@ export default function Skills({ data = null }) {
 
           {/* Soft Skills */}
           <div className="skills-fade" style={{
-            background: "var(--bg2)", border: "1px solid var(--border)",
-            borderRadius: "12px", padding: "32px", animationDelay: "0.15s",
+            background:     "var(--bg2)",
+            border:         "1px solid var(--border)",
+            borderRadius:   "12px",
+            padding:        "32px",
+            animationDelay: "0.15s",
           }}>
             <div style={{
-              fontSize: "10px", letterSpacing: "0.22em", textTransform: "uppercase",
-              color: "#2ECC71", fontFamily: "var(--font-mono)", marginBottom: "20px",
-              display: "flex", alignItems: "center", gap: "8px",
+              fontSize:      "10px",
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
+              color:         "#2ECC71",
+              fontFamily:    "var(--font-mono)",
+              marginBottom:  "20px",
+              display:       "flex",
+              alignItems:    "center",
+              gap:           "8px",
             }}>
               <span style={{ display: "inline-block", width: "16px", height: "1px", background: "#2ECC71" }} />
               Soft Skills
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-              {skills.softSkills.map((s, i) => <SoftPill key={i} name={s} index={i} />)}
+              {skills.softSkills.map((s, i) => (
+                <SoftPill key={i} name={s} index={i} />
+              ))}
             </div>
           </div>
 
           {/* Extra languages as bars */}
           {barLangs.length > 0 && (
             <div className="skills-fade" style={{
-              background: "var(--bg2)", border: "1px solid var(--border)",
-              borderRadius: "12px", padding: "32px", animationDelay: "0.22s",
+              background:     "var(--bg2)",
+              border:         "1px solid var(--border)",
+              borderRadius:   "12px",
+              padding:        "32px",
+              animationDelay: "0.22s",
             }}>
               <div style={{
-                fontSize: "10px", letterSpacing: "0.22em", textTransform: "uppercase",
-                color: "#F59E0B", fontFamily: "var(--font-mono)", marginBottom: "20px",
-                display: "flex", alignItems: "center", gap: "8px",
+                fontSize:      "10px",
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color:         "#F59E0B",
+                fontFamily:    "var(--font-mono)",
+                marginBottom:  "20px",
+                display:       "flex",
+                alignItems:    "center",
+                gap:           "8px",
               }}>
                 <span style={{ display: "inline-block", width: "16px", height: "1px", background: "#F59E0B" }} />
                 More Languages
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                {barLangs.map((l, i) => <LangBar key={l._id || i} name={l.name} level={l.level} index={i} />)}
+                {barLangs.map((l, i) => (
+                  <LangBar key={l._id || i} name={l.name} level={l.level} index={i} />
+                ))}
               </div>
             </div>
           )}
         </div>
 
-        {/* Right column — rings */}
+        {/* Right column — rings (size reduced to 85) */}
         <div className="skills-fade" style={{
-          background: "var(--bg2)", border: "1px solid var(--border)",
-          borderRadius: "12px", padding: "36px 32px", animationDelay: "0.1s",
+          background:     "var(--bg2)",
+          border:         "1px solid var(--border)",
+          borderRadius:   "12px",
+          padding:        "36px 32px",
+          animationDelay: "0.1s",
         }}>
           <div style={{
-            fontSize: "10px", letterSpacing: "0.22em", textTransform: "uppercase",
-            color: "#00D4FF", fontFamily: "var(--font-mono)", marginBottom: "32px",
-            display: "flex", alignItems: "center", gap: "8px",
+            fontSize:      "10px",
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color:         "#00D4FF",
+            fontFamily:    "var(--font-mono)",
+            marginBottom:  "32px",
+            display:       "flex",
+            alignItems:    "center",
+            gap:           "8px",
           }}>
             <span style={{ display: "inline-block", width: "16px", height: "1px", background: "#00D4FF" }} />
             Programming Languages
           </div>
 
-          {/* 3 × 3 ring grid */}
+          {/* 3×3 ring grid — rings at size=85 */}
           <div style={{
             display:             "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
-            gap:                 "32px 16px",
+            gap:                 "28px 12px",
             justifyItems:        "center",
           }}>
             {ringLangs.map((l, i) => (
               <div key={l._id || i} className="skills-fade" style={{ animationDelay: `${0.12 + i * 0.07}s` }}>
-                <Ring pct={l.level} name={l.name} size={110} />
+                <Ring pct={l.level} name={l.name} size={85} />
               </div>
             ))}
           </div>
 
           {/* Legend */}
           <div style={{
-            marginTop: "32px", paddingTop: "20px", borderTop: "1px solid var(--border)",
-            display: "flex", gap: "16px", flexWrap: "wrap", justifyContent: "center",
+            marginTop:      "28px",
+            paddingTop:     "18px",
+            borderTop:      "1px solid var(--border)",
+            display:        "flex",
+            gap:            "14px",
+            flexWrap:       "wrap",
+            justifyContent: "center",
           }}>
             {[
               { label: "Expert",       color: "#00D4FF", range: "80%+" },
@@ -409,13 +483,18 @@ export default function Skills({ data = null }) {
             ].map(item => (
               <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <span style={{
-                  width: "8px", height: "8px", borderRadius: "50%",
-                  background: item.color, flexShrink: 0,
-                  boxShadow: `0 0 6px ${item.color}`,
+                  width:        "7px",
+                  height:       "7px",
+                  borderRadius: "50%",
+                  background:   item.color,
+                  flexShrink:   0,
+                  boxShadow:    `0 0 5px ${item.color}`,
                 }} />
                 <span style={{
-                  fontSize: "10px", fontFamily: "var(--font-mono)",
-                  color: "rgba(var(--white-rgb),0.35)", letterSpacing: "0.06em",
+                  fontSize:      "10px",
+                  fontFamily:    "var(--font-mono)",
+                  color:         "rgba(var(--white-rgb),0.35)",
+                  letterSpacing: "0.06em",
                 }}>
                   {item.label}{" "}
                   <span style={{ color: item.color, opacity: 0.7 }}>{item.range}</span>

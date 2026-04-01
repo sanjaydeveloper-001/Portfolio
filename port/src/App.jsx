@@ -56,12 +56,12 @@ export default function App() {
       <main className="main-wrap">
         <Hero         profile={data.profile} />
         <About        profile={data.profile} />
-        <Skills       data={data.skills} />
         <Projects     projects={data.projects} />
-        <Education    items={data.education} />
         <Experience   items={data.experience} />
         <Certifications items={data.certifications} />
+        <Skills       data={data.skills} />
         <Interests    items={data.interests} />
+        <Education    items={data.education} />
         <Contact      profile={data.profile} />
         <Footer       profile={data.profile} />
       </main>
