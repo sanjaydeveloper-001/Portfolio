@@ -1,16 +1,17 @@
 /**
  * components/UI.jsx
- * Cursor: OS arrow shape in --red theme color
- * + Double-click bubble burst effect
+ * – No custom cursor (system cursor restored)
+ * – BubbleBurst exported for double-click effect
+ * – ScrollProgress and Loader unchanged
  */
 
-import { useRef, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useScrollProgress } from '../hooks';
 
 /* ═══════════════════════════
    BUBBLE BURST ON DOUBLE CLICK
 ═══════════════════════════ */
-const BubbleBurst = () => {
+export const BubbleBurst = () => {
   const [bubbles, setBubbles] = useState([]);
 
   useEffect(() => {
@@ -28,7 +29,6 @@ const BubbleBurst = () => {
 
       setBubbles(prev => [...prev, ...newBubbles]);
 
-      // Remove after animation
       setTimeout(() => {
         setBubbles(prev => prev.filter(b => !newBubbles.find(n => n.id === b.id)));
       }, 700);
@@ -46,17 +46,16 @@ const BubbleBurst = () => {
           border-radius: 50%;
           pointer-events: none;
           z-index: 99998;
-          border: 2px solid var(--red, #e63946);
+          border: 2px solid var(--accent, #e63946);
           background: transparent;
           transform: translate(-50%, -50%);
-          animation: bubble-burst 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
         }
         .bubble-ring {
           position: fixed;
           border-radius: 50%;
           pointer-events: none;
           z-index: 99997;
-          border: 1.5px solid var(--red, #e63946);
+          border: 1.5px solid var(--accent, #e63946);
           background: transparent;
           transform: translate(-50%, -50%);
           animation: ring-expand 0.65s ease-out forwards;
@@ -67,44 +66,30 @@ const BubbleBurst = () => {
         }
       `}</style>
 
-      {/* Central expanding ring */}
       {bubbles
         .filter((_, i) => i % 8 === 0)
         .map(b => (
-          <div
-            key={`ring-${b.id}`}
-            className="bubble-ring"
-            style={{ left: b.x, top: b.y }}
-          />
+          <div key={`ring-${b.id}`} className="bubble-ring" style={{ left: b.x, top: b.y }} />
         ))
       }
 
-      {/* Scattered bubbles */}
       {bubbles.map(b => {
         const rad = (b.angle * Math.PI) / 180;
         const tx  = Math.cos(rad) * b.distance;
         const ty  = Math.sin(rad) * b.distance;
-
         return (
           <div
             key={b.id}
             className="bubble"
             style={{
-              left: b.x,
-              top: b.y,
-              width: b.size,
-              height: b.size,
-              // Inline keyframe via CSS custom properties trick
-              '--tx': `${tx}px`,
-              '--ty': `${ty}px`,
-              animationName: 'none', // override, use inline style animation
+              left: b.x, top: b.y,
+              width: b.size, height: b.size,
               animation: `bubble-fly-${b.id} 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`,
             }}
           />
         );
       })}
 
-      {/* Inject per-bubble keyframes */}
       {bubbles.map(b => {
         const rad = (b.angle * Math.PI) / 180;
         const tx  = Math.cos(rad) * b.distance;
@@ -112,67 +97,13 @@ const BubbleBurst = () => {
         return (
           <style key={`style-${b.id}`}>{`
             @keyframes bubble-fly-${b.id} {
-              0%   { transform: translate(-50%, -50%) translate(0, 0);         opacity: 1; width: ${b.size}px; height: ${b.size}px; }
+              0%   { transform: translate(-50%, -50%) translate(0, 0);             opacity: 1; width: ${b.size}px; height: ${b.size}px; }
               60%  { opacity: 0.8; }
               100% { transform: translate(-50%, -50%) translate(${tx}px, ${ty}px); opacity: 0; width: ${b.size * 0.4}px; height: ${b.size * 0.4}px; }
             }
           `}</style>
         );
       })}
-    </>
-  );
-};
-
-/* ═══════════════════════════
-   CURSOR
-═══════════════════════════ */
-export const Cursor = () => {
-  const svgRef = useRef(null);
-
-  useEffect(() => {
-    const onMove = (e) => {
-      if (svgRef.current) {
-        svgRef.current.style.transform =
-          `translate(${e.clientX}px, ${e.clientY}px)`;
-      }
-    };
-
-    window.addEventListener('mousemove', onMove);
-    return () => window.removeEventListener('mousemove', onMove);
-  }, []);
-
-  return (
-    <>
-      <style>{`
-        *, *::before, *::after { cursor: none !important; }
-        .cur-arrow {
-          position: fixed;
-          top: 0; left: 0;
-          pointer-events: none;
-          z-index: 99999;
-          will-change: transform;
-        }
-      `}</style>
-
-      <svg
-        ref={svgRef}
-        className="cur-arrow"
-        width="24" height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <path
-          d="M3 2L3 18L7.5 13.5L10.5 21L13 20L10 13H16L3 2Z"
-          fill="var(--red, #e63946)"
-          stroke="#0a0a0a"
-          strokeWidth="1"
-          strokeLinejoin="round"
-        />
-      </svg>
-
-      <BubbleBurst />
     </>
   );
 };

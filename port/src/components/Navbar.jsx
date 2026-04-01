@@ -1,7 +1,6 @@
 // components/Navbar.jsx
 import { useState, useEffect } from 'react';
-import { IoSunnyOutline , IoMoonOutline} from "react-icons/io5";
-import { Icon } from './Ui';
+import { IoSunnyOutline, IoMoonOutline } from 'react-icons/io5';
 
 export const NAV = [
   { id: 'home',           label: 'Home'           },
@@ -14,10 +13,26 @@ export const NAV = [
   { id: 'contact',        label: 'Contact Us'     },
 ];
 
-export const NAV_IDS = NAV.map((n) => n.id);
+export const NAV_IDS = NAV.map(n => n.id);
 
-const scrollTo = (id) =>
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+/**
+ * Scroll so the section sits just below the navbar.
+ * If id === 'home' we scroll to the very top (y = 0).
+ */
+function scrollTo(id) {
+  if (id === 'home') {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  const el = document.getElementById(id);
+  if (!el) return;
+  const navH = parseInt(
+    getComputedStyle(document.documentElement).getPropertyValue('--nav-h') || '68',
+    10
+  );
+  const top = el.getBoundingClientRect().top + window.scrollY - navH - 2;
+  window.scrollTo({ top, behavior: 'smooth' });
+}
 
 export function Navbar({ profile, active, theme, onToggleTheme }) {
   const [open, setOpen] = useState(false);
@@ -59,7 +74,7 @@ export function Navbar({ profile, active, theme, onToggleTheme }) {
             onClick={onToggleTheme}
             aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
-            {theme === 'dark' ? <IoMoonOutline/> : <IoSunnyOutline />}
+            {theme === 'dark' ? <IoMoonOutline /> : <IoSunnyOutline />}
           </button>
           <button className="nav-cta" onClick={() => scrollTo('contact')}>
             Contact Me →
@@ -69,7 +84,7 @@ export function Navbar({ profile, active, theme, onToggleTheme }) {
         {/* Hamburger — visible only on mobile via CSS */}
         <button
           className={`hamburger${open ? ' open' : ''}`}
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => setOpen(v => !v)}
           aria-label={open ? 'Close menu' : 'Open menu'}
         >
           <span /><span /><span />
@@ -110,7 +125,7 @@ export function Navbar({ profile, active, theme, onToggleTheme }) {
             Contact Me →
           </button>
           <button className="mob-theme-btn" onClick={onToggleTheme}>
-            {theme === 'dark' ? `Light Mode` : `Dark Mode`}
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
           </button>
         </div>
       </div>

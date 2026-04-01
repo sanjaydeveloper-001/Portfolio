@@ -1,22 +1,26 @@
-/**
- * components/Contact.jsx
- * Contact section + Footer
- */
+// components/Footer.jsx
+// Back-to-top is now a floating button (BackToTop.jsx) — footer is clean.
 
-import { Icon } from './Ui';
-/* ── Footer ── */
 export default function Footer({ profile }) {
   return (
     <footer>
       <div className="footer-copy">
         © <span>{profile?.name || 'Portfolio'}</span> {new Date().getFullYear()} — All rights reserved
       </div>
-      <button
-        className="footer-back"
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      >
-        <Icon.ArrowU /> Back to Top
-      </button>
+      <div className="footer-socials">
+        {profile?.social?.slice(0, 4).map((s, i) => (
+          <a
+            key={i}
+            href={s.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={s.name}
+            className="footer-social-link"
+          >
+            {s.name.slice(0, 2).toUpperCase()}
+          </a>
+        ))}
+      </div>
     </footer>
   );
 }
