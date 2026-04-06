@@ -15,6 +15,7 @@ import Footer                         from './components/Footer';
 import BackToTop                      from './components/BackToTop';
 import { usePortfolioData, useActiveSection, useReveal } from './hooks';
 import { GLOBAL_CSS } from './components/globalStyles';
+import Loader from './components/Loader';
 
 export default function App() {
   const [theme, setTheme] = useState('dark');
@@ -40,6 +41,7 @@ export default function App() {
   }, [theme]);
   const toggleTheme = () => setTheme(p => p === 'dark' ? 'light' : 'dark');
 
+  if(loading) return <Loader loading={loading} />;
   return (
     <>
       {/* Bubble burst on double-click — no custom cursor */}

@@ -52,7 +52,7 @@ export const portfolioApi = {
    * @param {{ name: string, email: string, message: string }} payload
    */
   sendContact: (payload) =>
-    request('/contact', {
+    request('/user/sendmail', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),

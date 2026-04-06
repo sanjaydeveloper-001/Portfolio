@@ -16,6 +16,7 @@ import skillRoutes from "./routes/skillRoutes.js";
 import certificationRoutes from "./routes/certificationRoutes.js";
 import interestRoutes from "./routes/interestRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import contactRoutes from './routes/contactRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -79,6 +80,7 @@ app.use("/user/skills",         skillRoutes);
 app.use("/user/certifications", certificationRoutes);
 app.use("/user/interests",      interestRoutes);
 app.use("/user/upload",         uploadRoutes);
+app.use("/user/sendmail",                contactRoutes);
 
 // ========== 404 Handler ==========
 app.use((req, res) => {

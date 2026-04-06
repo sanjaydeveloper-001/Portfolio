@@ -18,7 +18,7 @@ export default function About({ profile }) {
       <div className="about-wrap">
 
         {/* Photo — column width reduced via inline override */}
-        <div className="about-photo" style={{ maxWidth: "300px", width: "100%" }}>
+        <div className="about-photo">
           <div className="about-photo-stat">
             <div className="about-photo-stat-num">{profile?.webBuilds || '15+'}</div>
             <div className="about-photo-stat-label">Webs Built</div>

@@ -306,7 +306,7 @@ svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8;
   background:radial-gradient(circle,rgba(232,73,15,.08) 0%,transparent 70%);
   pointer-events:none; border-radius:50%;
 }
-.about-wrap { max-width:1200px; margin:0 auto; padding:0 48px; display:grid; grid-template-columns:300px 1fr; gap:80px; align-items:center; position:relative; z-index:1; }
+.about-wrap { max-width:1200px; margin:0 auto; padding:0 48px; display:grid; grid-template-columns:360px 1fr; gap:80px; align-items:center; position:relative; z-index:1; }
 .about-photo { position:relative; }
 .about-photo-index { position:absolute; top:-20px; left:0; font-family:var(--font-mono); font-size:9px; letter-spacing:.28em; text-transform:uppercase; color:var(--accent); z-index:3; }
 .about-photo img { width:100%; border-radius:4px; object-fit:cover; object-position:center top; display:block; position:relative; z-index:2; filter:brightness(.88) contrast(1.04); transition:filter .4s ease; }
