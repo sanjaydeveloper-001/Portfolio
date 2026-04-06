@@ -80,7 +80,7 @@ app.use("/user/skills",         skillRoutes);
 app.use("/user/certifications", certificationRoutes);
 app.use("/user/interests",      interestRoutes);
 app.use("/user/upload",         uploadRoutes);
-app.use("/user/sendmail",                contactRoutes);
+app.use("/user/sendmail",       contactRoutes);
 
 // ========== 404 Handler ==========
 app.use((req, res) => {

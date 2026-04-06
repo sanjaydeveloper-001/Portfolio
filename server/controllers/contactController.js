@@ -1,27 +1,25 @@
 import nodemailer from 'nodemailer';
 
-// Create reusable transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
 export const sendContactEmail = async (req, res) => {
   const { name, email, message } = req.body;
 
-  // Basic validation
   if (!name || !email || !message) {
     return res.status(400).json({ message: 'All fields are required.' });
   }
 
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT, 10),
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
   const mailOptions = {
-    from: `"${name}" <${email}>`,  // Sender address
-    to: process.env.EMAIL_USER,    // Your email address
+    from: `"${name}" <${process.env.EMAIL_FROM}>`,
+    to: process.env.EMAIL_USER,
     subject: `New Contact from ${name}`,
     text: `Name: ${name}\nEmail: ${email}\nMessage:\n${message}`,
     html: `
